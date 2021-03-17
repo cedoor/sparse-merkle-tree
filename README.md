@@ -1,6 +1,6 @@
 <p align="center">
     <h1 align="center">
-        Network flow algorithms
+        Sparse Merkle tree
     </h1>
     <p align="center">Sparse Merkle tree implementation in TypeScript.</p>
 </p>
