@@ -1,0 +1,48 @@
+name: release
+
+on:
+    release:
+        types: [created]
+
+jobs:
+    package:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v2
+
+            - name: Use Node.js 14.x
+              uses: actions/setup-node@v1
+              with:
+                  node-version: 14.x
+                  registry-url: "https://registry.npmjs.org"
+
+            - run: yarn --frozen-lockfile
+            - run: yarn build
+            - run: yarn publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    docs:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v2
+
+            - name: Use Node.js 14.x
+              uses: actions/setup-node@v1
+              with:
+                  node-version: 14.x
+
+            - run: yarn --frozen-lockfile
+            - run: yarn docs
+
+            - name: Github Pages
+              uses: crazy-max/ghaction-github-pages@v2.2.0
+              with:
+                  build_dir: docs
+                  commit_message: "docs: update documentation website"
+                  fqdn: smt.cedoor.dev
+                  jekyll: false
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
