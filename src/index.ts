@@ -1,5 +1,1 @@
-// export { default as Map } from "./map"
-
-export function test() {
-    return "Hello world"
-}
+export { default as SMT } from "./smt"
