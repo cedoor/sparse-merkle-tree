@@ -88,8 +88,38 @@ export default class SMT {
         this.root = this.insertNewNodes(newNode, path, sidenodes)
     }
 
-    private insertNewNodes(node: bigint, path: number[], sidenodes: bigint[]): bigint {
-        for (let i = sidenodes.length - 1; i >= 0; i--) {
+    delete(key: bigint) {
+        const { value, sidenodes } = this.get(key)
+
+        if (value === undefined) {
+            throw new Error(`Key "${key}" does not exist`)
+        }
+
+        const path = this.keyToPath(key)
+
+        const node = this.hash(key, value, 1n)
+        this.nodes.delete(node)
+
+        this.root = 0n
+
+        if (sidenodes.length > 0) {
+            this.deleteOldNodes(node, path, sidenodes)
+
+            const childNodes = this.nodes.get(sidenodes[sidenodes.length - 1]) as bigint[]
+
+            if (!childNodes[2]) {
+                this.root = this.insertNewNodes(0n, path, sidenodes)
+            } else {
+                const a = sidenodes.pop()
+                const i = this.getLastIndexOfNonZero(sidenodes)
+
+                this.root = this.insertNewNodes(a, path, sidenodes, i)
+            }
+        }
+    }
+
+    private insertNewNodes(node: bigint, path: number[], sidenodes: bigint[], i = sidenodes.length - 1): bigint {
+        for (; i >= 0; i--) {
             const childNodes = path[i] ? [sidenodes[i], node] : [node, sidenodes[i]]
             node = this.hash(...childNodes)
 
@@ -99,8 +129,8 @@ export default class SMT {
         return node
     }
 
-    private deleteOldNodes(node: bigint, path: number[], sidenodes: bigint[], i?: number) {
-        for (i = i || sidenodes.length - 1; i >= 0; i--) {
+    private deleteOldNodes(node: bigint, path: number[], sidenodes: bigint[], i = sidenodes.length - 1) {
+        for (; i >= 0; i--) {
             const childNodes = path[i] ? [sidenodes[i], node] : [node, sidenodes[i]]
             node = this.hash(...childNodes)
 

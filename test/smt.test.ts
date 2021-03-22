@@ -38,7 +38,7 @@ describe("Sparse Merkle tree", () => {
             expect(fun).toThrow()
         })
 
-        it("Should add 10 new entries and create the correct root hash", () => {
+        it("Should add 6 new entries and create the correct root hash", () => {
             const tree = new SMT(hash)
             const keys = [10n, 3n, 43n, 32n, 9n, 23n]
 
@@ -76,6 +76,42 @@ describe("Sparse Merkle tree", () => {
             const tree = new SMT(hash)
 
             const fun = () => tree.update(1n, 5n)
+
+            expect(fun).toThrow()
+        })
+    })
+
+    describe("Delete an entry in the tree", () => {
+        it("Should delete an entry with an existing key", () => {
+            const tree = new SMT(hash)
+
+            tree.add(2n, 10n)
+            tree.delete(2n)
+
+            expect(tree.nodes.size).toEqual(0)
+            expect(tree.root).toEqual(0n)
+        })
+
+        it("Should delete 3 entries and create the correct root hash", () => {
+            const tree = new SMT(hash)
+
+            const keys = [10n, 3n, 43n, 32n, 9n, 23n]
+
+            for (const key of keys) {
+                tree.add(key, key * 10n)
+            }
+
+            tree.delete(3n)
+            tree.delete(32n)
+            tree.delete(9n)
+
+            expect(tree.root.toString().slice(0, 5)).toEqual("17944")
+        })
+
+        it("Should not delete an with a non-existing key", () => {
+            const tree = new SMT(hash)
+
+            const fun = () => tree.delete(1n)
 
             expect(fun).toThrow()
         })
