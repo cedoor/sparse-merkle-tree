@@ -33,8 +33,9 @@ describe("Sparse Merkle tree", () => {
             const tree = new SMT(hash)
 
             tree.add(2n, 10n)
+            const fun = () => tree.add(2n, 10n)
 
-            expect(() => tree.add(2n, 10n)).toThrow()
+            expect(fun).toThrow()
         })
 
         it("Should add 10 new entries and create the correct root hash", () => {
@@ -57,6 +58,26 @@ describe("Sparse Merkle tree", () => {
             const { value } = tree.get(2n)
 
             expect(value).toEqual(10n)
+        })
+    })
+
+    describe("Update values in the tree", () => {
+        it("Should update a value of an existing key", () => {
+            const tree = new SMT(hash)
+
+            tree.add(2n, 10n)
+            tree.update(2n, 5n)
+
+            expect(tree.nodes.size).toEqual(1)
+            expect(tree.root.toString().slice(0, 5)).toEqual("87016")
+        })
+
+        it("Should not update a value with a non-existing key", () => {
+            const tree = new SMT(hash)
+
+            const fun = () => tree.update(1n, 5n)
+
+            expect(fun).toThrow()
         })
     })
 
