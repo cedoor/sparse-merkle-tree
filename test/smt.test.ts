@@ -3,9 +3,11 @@ import { poseidon, smt as CircomlibSMT } from "circomlib"
 
 describe("Sparse Merkle tree", () => {
     let hash: (...values: bigint[]) => bigint
+    let keys: bigint[]
 
     beforeAll(() => {
         hash = (...values: bigint[]) => poseidon(values)
+        keys = [10n, 3n, 43n, 32n, 9n, 23n]
     })
 
     describe("Create new trees", () => {
@@ -14,7 +16,6 @@ describe("Sparse Merkle tree", () => {
 
             expect(tree.root).toEqual(0n)
             expect(tree.nodes.size).toEqual(0)
-            expect(typeof tree.hash(0n)).toEqual("bigint")
         })
     })
 
@@ -40,7 +41,6 @@ describe("Sparse Merkle tree", () => {
 
         it("Should add 6 new entries and create the correct root hash", () => {
             const tree = new SMT(hash)
-            const keys = [10n, 3n, 43n, 32n, 9n, 23n]
 
             for (const key of keys) {
                 tree.add(key, key * 10n)
@@ -81,7 +81,7 @@ describe("Sparse Merkle tree", () => {
         })
     })
 
-    describe("Delete an entry in the tree", () => {
+    describe("Delete entries from the tree", () => {
         it("Should delete an entry with an existing key", () => {
             const tree = new SMT(hash)
 
@@ -95,25 +95,53 @@ describe("Sparse Merkle tree", () => {
         it("Should delete 3 entries and create the correct root hash", () => {
             const tree = new SMT(hash)
 
-            const keys = [10n, 3n, 43n, 32n, 9n, 23n]
-
             for (const key of keys) {
                 tree.add(key, key * 10n)
             }
 
-            tree.delete(3n)
-            tree.delete(32n)
-            tree.delete(9n)
+            tree.delete(keys[1])
+            tree.delete(keys[3])
+            tree.delete(keys[4])
 
             expect(tree.root.toString().slice(0, 5)).toEqual("17944")
         })
 
-        it("Should not delete an with a non-existing key", () => {
+        it("Should not delete an entry with a non-existing key", () => {
             const tree = new SMT(hash)
 
             const fun = () => tree.delete(1n)
 
             expect(fun).toThrow()
+        })
+    })
+
+    describe("Create Merkle proofs and verify them", () => {
+        it("Should create some Merkle proofs and verify them", () => {
+            const tree = new SMT(hash)
+
+            for (const key of keys) {
+                tree.add(key, key * 10n)
+            }
+
+            for (let i = 0; i < 100; i++) {
+                const randomKey = BigInt(Math.floor(Math.random() * 100))
+                const proof = tree.createProof(randomKey)
+
+                expect(tree.verifyProof(proof)).toBeTruthy()
+            }
+        })
+
+        it("Should not verify a wrong Merkle proof", () => {
+            const tree = new SMT(hash)
+
+            for (const key of keys) {
+                tree.add(key, key * 10n)
+            }
+
+            const proof = tree.createProof(25n)
+            proof.matchingEntry = [33n, 3n]
+
+            expect(tree.verifyProof(proof)).toBeFalsy()
         })
     })
 

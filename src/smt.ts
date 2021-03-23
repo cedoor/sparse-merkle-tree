@@ -1,4 +1,4 @@
-import { keyToPath, getLastIndexOfNonZeroSidenode } from "../src/utils"
+import { keyToPath, getIndexOfLastNonZeroElement, getFirstMatchingElements } from "../src/utils"
 
 export default class SMT {
     root: bigint
@@ -48,7 +48,7 @@ export default class SMT {
         if (node === 0n && sidenodes.length > 0) {
             this.deleteOldNodes(node, path, sidenodes)
         } else {
-            const i = getLastIndexOfNonZeroSidenode(sidenodes)
+            const i = getIndexOfLastNonZeroElement(sidenodes)
 
             this.deleteOldNodes(node, path, sidenodes, i)
         }
@@ -113,10 +113,54 @@ export default class SMT {
                 this.root = this.insertNewNodes(0n, path, sidenodes)
             } else {
                 const a = sidenodes.pop()
-                const i = getLastIndexOfNonZeroSidenode(sidenodes)
+                const i = getIndexOfLastNonZeroElement(sidenodes)
 
                 this.root = this.insertNewNodes(a, path, sidenodes, i)
             }
+        }
+    }
+
+    createProof(key: bigint): Proof {
+        const { sidenodes, value, node } = this.get(key)
+        const matchingEntry = this.nodes.get(node)
+
+        return {
+            entry: [key, value],
+            matchingEntry,
+            sidenodes,
+            root: this.root,
+            existence: !!value
+        }
+    }
+
+    verifyProof(proof: Proof): boolean {
+        if (!proof.matchingEntry) {
+            const path = keyToPath(proof.entry[0])
+            let node = proof.entry[1] !== undefined ? this.hash(proof.entry[0], proof.entry[1], 1n) : 0n
+
+            for (let i = proof.sidenodes.length - 1; i >= 0; i--) {
+                const childNodes = path[i] ? [proof.sidenodes[i], node] : [node, proof.sidenodes[i]]
+                node = this.hash(...childNodes)
+            }
+
+            return node === proof.root
+        } else {
+            const matchingPath = keyToPath(proof.matchingEntry[0])
+            let node = this.hash(proof.matchingEntry[0], proof.matchingEntry[1], 1n)
+
+            for (let i = proof.sidenodes.length - 1; i >= 0; i--) {
+                const childNodes = matchingPath[i] ? [proof.sidenodes[i], node] : [node, proof.sidenodes[i]]
+                node = this.hash(...childNodes)
+            }
+
+            if (node === proof.root) {
+                const path = keyToPath(proof.entry[0])
+                const firstMatchingBits = getFirstMatchingElements(path, matchingPath)
+
+                return proof.sidenodes.length <= firstMatchingBits.length
+            }
+
+            return false
         }
     }
 
@@ -139,4 +183,12 @@ export default class SMT {
             this.nodes.delete(node)
         }
     }
+}
+
+export interface Proof {
+    entry: bigint[]
+    matchingEntry?: bigint[]
+    sidenodes: bigint[]
+    root: bigint
+    existence: boolean
 }
