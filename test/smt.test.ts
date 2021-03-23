@@ -55,7 +55,7 @@ describe("Sparse Merkle tree", () => {
             const tree = new SMT(hash)
 
             tree.add(2n, 10n)
-            const { value } = tree.get(2n)
+            const value = tree.get(2n)
 
             expect(value).toEqual(10n)
         })
