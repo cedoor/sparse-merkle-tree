@@ -1,23 +1,31 @@
-import { keyToPath, getIndexOfLastNonZeroElement, getFirstMatchingElements } from "../src/utils"
+import { decToHex, getFirstMatchingElements, getIndexOfLastNonZeroElement, keyToPath } from "../src/utils"
 
 export default class SMT {
-    root: bigint
-    nodes: Map<bigint, any[]>
-    private hash: (...values: bigint[]) => bigint
+    private zeroValue: string
+    private hash: (childNodes: ChildNodes) => string
+    private nodes: Map<string, ChildNodes>
 
-    constructor(hash: (...values: bigint[]) => bigint) {
-        this.root = 0n
-        this.nodes = new Map()
+    root: string
+
+    constructor(hash: (childNodes: ChildNodes) => string) {
+        this.zeroValue = "".padEnd(64, "0")
         this.hash = hash
+        this.nodes = new Map()
+        this.root = this.zeroValue
     }
 
-    get(key: bigint): bigint | null {
+    get(key: string | number): string | null {
+        key = typeof key === "number" ? decToHex(key) : key
+
         const { entry } = this.retrieveEntry(key)
 
         return entry[1] !== undefined ? entry[1] : null
     }
 
-    add(key: bigint, value: bigint) {
+    add(key: string | number, value: string | number) {
+        key = typeof key === "number" ? decToHex(key) : key
+        value = typeof value === "number" ? decToHex(value) : value
+
         const { entry, matchingEntry, sidenodes } = this.retrieveEntry(key)
 
         if (entry[1] !== undefined) {
@@ -25,10 +33,10 @@ export default class SMT {
         }
 
         const path = keyToPath(key)
-        const node = matchingEntry ? this.hash(...matchingEntry) : 0n
+        const node = matchingEntry ? this.hash(matchingEntry) : this.zeroValue
 
         if (sidenodes.length > 0) {
-            if (node === 0n) {
+            if (node === this.zeroValue) {
                 this.deleteOldNodes(node, path, sidenodes)
             } else {
                 const i = getIndexOfLastNonZeroElement(sidenodes)
@@ -37,24 +45,27 @@ export default class SMT {
             }
         }
 
-        if (node !== 0n) {
-            const childNodes = this.nodes.get(node) as bigint[]
+        if (node !== this.zeroValue) {
+            const childNodes = this.nodes.get(node) as string[]
             const oldPath = keyToPath(childNodes[0])
 
             for (let i = sidenodes.length; oldPath[i] === path[i]; i++) {
-                sidenodes.push(0n)
+                sidenodes.push(this.zeroValue)
             }
 
             sidenodes.push(node)
         }
 
-        const newNode = this.hash(key, value, 1n)
+        const newNode = this.hash([key, value, true])
         this.nodes.set(newNode, [key, value, true])
 
         this.root = this.insertNewNodes(newNode, path, sidenodes)
     }
 
-    update(key: bigint, newValue: bigint) {
+    update(key: string | number, value: string | number) {
+        key = typeof key === "number" ? decToHex(key) : key
+        value = typeof value === "number" ? decToHex(value) : value
+
         const { entry, sidenodes } = this.retrieveEntry(key)
 
         if (entry[1] === undefined) {
@@ -63,18 +74,20 @@ export default class SMT {
 
         const path = keyToPath(key)
 
-        const node = this.hash(key, entry[1], 1n)
+        const node = this.hash(entry)
         this.nodes.delete(node)
 
         this.deleteOldNodes(node, path, sidenodes)
 
-        const newNode = this.hash(key, newValue, 1n)
-        this.nodes.set(newNode, [key, newValue, true])
+        const newNode = this.hash([key, value, true])
+        this.nodes.set(newNode, [key, value, true])
 
         this.root = this.insertNewNodes(newNode, path, sidenodes)
     }
 
-    delete(key: bigint) {
+    delete(key: string | number) {
+        key = typeof key === "number" ? decToHex(key) : key
+
         const { entry, sidenodes } = this.retrieveEntry(key)
 
         if (entry[1] === undefined) {
@@ -83,20 +96,20 @@ export default class SMT {
 
         const path = keyToPath(key)
 
-        const node = this.hash(key, entry[1], 1n)
+        const node = this.hash(entry)
         this.nodes.delete(node)
 
-        this.root = 0n
+        this.root = this.zeroValue
 
         if (sidenodes.length > 0) {
             this.deleteOldNodes(node, path, sidenodes)
 
-            const childNodes = this.nodes.get(sidenodes[sidenodes.length - 1]) as bigint[]
+            const childNodes = this.nodes.get(sidenodes[sidenodes.length - 1]) as string[]
 
             if (!childNodes[2]) {
-                this.root = this.insertNewNodes(0n, path, sidenodes)
+                this.root = this.insertNewNodes(this.zeroValue, path, sidenodes)
             } else {
-                const firstSidenode = sidenodes.pop() as bigint
+                const firstSidenode = sidenodes.pop() as string
                 const i = getIndexOfLastNonZeroElement(sidenodes)
 
                 this.root = this.insertNewNodes(firstSidenode, path, sidenodes, i)
@@ -104,7 +117,9 @@ export default class SMT {
         }
     }
 
-    createProof(key: bigint): Proof {
+    createProof(key: string | number): Proof {
+        key = typeof key === "number" ? decToHex(key) : key
+
         const { entry, matchingEntry, sidenodes } = this.retrieveEntry(key)
 
         return {
@@ -119,13 +134,13 @@ export default class SMT {
     verifyProof(proof: Proof): boolean {
         if (!proof.matchingEntry) {
             const path = keyToPath(proof.entry[0])
-            const node = proof.entry[1] !== undefined ? this.hash(proof.entry[0], proof.entry[1], 1n) : 0n
+            const node = proof.entry[1] !== undefined ? this.hash(proof.entry) : this.zeroValue
             const root = this.calculateRoot(node, path, proof.sidenodes)
 
             return root === proof.root
         } else {
             const matchingPath = keyToPath(proof.matchingEntry[0])
-            const node = this.hash(proof.matchingEntry[0], proof.matchingEntry[1], 1n)
+            const node = this.hash(proof.matchingEntry)
             const root = this.calculateRoot(node, matchingPath, proof.sidenodes)
 
             if (root === proof.root) {
@@ -139,12 +154,12 @@ export default class SMT {
         }
     }
 
-    private retrieveEntry(key: bigint): EntryResponse {
+    private retrieveEntry(key: string): EntryResponse {
         const path = keyToPath(key)
-        const sidenodes: bigint[] = []
+        const sidenodes: string[] = []
 
-        for (let i = 0, node = this.root; node !== 0n; i++) {
-            const childNodes = this.nodes.get(node) as bigint[]
+        for (let i = 0, node = this.root; node !== this.zeroValue; i++) {
+            const childNodes = this.nodes.get(node) as ChildNodes
             const direction = path[i]
 
             if (childNodes[2]) {
@@ -155,26 +170,26 @@ export default class SMT {
                 return { entry: [key], matchingEntry: childNodes, sidenodes }
             }
 
-            sidenodes.push(childNodes[Number(!direction)])
-            node = childNodes[direction]
+            sidenodes.push(childNodes[Number(!direction)] as string)
+            node = childNodes[direction] as string
         }
 
         return { entry: [key], sidenodes }
     }
 
-    private calculateRoot(node: bigint, path: number[], sidenodes: bigint[]): bigint {
+    private calculateRoot(node: string, path: number[], sidenodes: string[]): string {
         for (let i = sidenodes.length - 1; i >= 0; i--) {
-            const childNodes = path[i] ? [sidenodes[i], node] : [node, sidenodes[i]]
-            node = this.hash(...childNodes)
+            const childNodes: ChildNodes = path[i] ? [sidenodes[i], node] : [node, sidenodes[i]]
+            node = this.hash(childNodes)
         }
 
         return node
     }
 
-    private insertNewNodes(node: bigint, path: number[], sidenodes: bigint[], i = sidenodes.length - 1): bigint {
+    private insertNewNodes(node: string, path: number[], sidenodes: string[], i = sidenodes.length - 1): string {
         for (; i >= 0; i--) {
-            const childNodes = path[i] ? [sidenodes[i], node] : [node, sidenodes[i]]
-            node = this.hash(...childNodes)
+            const childNodes: ChildNodes = path[i] ? [sidenodes[i], node] : [node, sidenodes[i]]
+            node = this.hash(childNodes)
 
             this.nodes.set(node, childNodes)
         }
@@ -182,23 +197,25 @@ export default class SMT {
         return node
     }
 
-    private deleteOldNodes(node: bigint, path: number[], sidenodes: bigint[], i = sidenodes.length - 1) {
+    private deleteOldNodes(node: string, path: number[], sidenodes: string[], i = sidenodes.length - 1) {
         for (; i >= 0; i--) {
-            const childNodes = path[i] ? [sidenodes[i], node] : [node, sidenodes[i]]
-            node = this.hash(...childNodes)
+            const childNodes: ChildNodes = path[i] ? [sidenodes[i], node] : [node, sidenodes[i]]
+            node = this.hash(childNodes)
 
             this.nodes.delete(node)
         }
     }
 }
 
+export type ChildNodes = [string, string?, boolean?]
+
 export interface EntryResponse {
-    entry: bigint[]
-    matchingEntry?: bigint[]
-    sidenodes: bigint[]
+    entry: ChildNodes
+    matchingEntry?: ChildNodes
+    sidenodes: string[]
 }
 
 export interface Proof extends EntryResponse {
-    root: bigint
+    root: string
     membership: boolean
 }
