@@ -1,14 +1,13 @@
 {
     "compilerOptions": {
+        "strict": true,
         "moduleResolution": "node",
         "esModuleInterop": true,
-        "target": "ES2020",
-        "module": "ES2015",
-        "lib": ["ES2015", "ES2016", "ES2017", "ES2018", "ES2019", "ES2020"],
-        "strict": true,
+        "module": "ES6",
+        "target": "ES6",
         "declaration": true,
-        "allowSyntheticDefaultImports": true,
         "declarationDir": "dist/types",
+        "allowSyntheticDefaultImports": true,
         "typeRoots": ["node_modules/@types", "./types"]
     },
     "include": ["src", "test", "types"]
