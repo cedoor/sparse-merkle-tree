@@ -8,24 +8,26 @@ export default class SMT {
     root: string
 
     constructor(hash: (childNodes: ChildNodes) => string) {
-        this.zeroValue = "".padEnd(64, "0")
+        this.zeroValue = "0"
         this.hash = hash
         this.nodes = new Map()
         this.root = this.zeroValue
     }
 
     get(key: string | number): string | null {
-        key = typeof key === "number" ? decToHex(key) : key
-
+        key = this.getHex(key)
         const { entry } = this.retrieveEntry(key)
 
-        return entry[1] !== undefined ? entry[1] : null
+        if (entry[1] === undefined) {
+            return null
+        }
+
+        return entry[1]
     }
 
     add(key: string | number, value: string | number) {
-        key = typeof key === "number" ? decToHex(key) : key
-        value = typeof value === "number" ? decToHex(value) : value
-
+        key = this.getHex(key)
+        value = this.getHex(value)
         const { entry, matchingEntry, sidenodes } = this.retrieveEntry(key)
 
         if (entry[1] !== undefined) {
@@ -63,9 +65,8 @@ export default class SMT {
     }
 
     update(key: string | number, value: string | number) {
-        key = typeof key === "number" ? decToHex(key) : key
-        value = typeof value === "number" ? decToHex(value) : value
-
+        key = this.getHex(key)
+        value = this.getHex(value)
         const { entry, sidenodes } = this.retrieveEntry(key)
 
         if (entry[1] === undefined) {
@@ -86,8 +87,7 @@ export default class SMT {
     }
 
     delete(key: string | number) {
-        key = typeof key === "number" ? decToHex(key) : key
-
+        key = this.getHex(key)
         const { entry, sidenodes } = this.retrieveEntry(key)
 
         if (entry[1] === undefined) {
@@ -118,8 +118,7 @@ export default class SMT {
     }
 
     createProof(key: string | number): Proof {
-        key = typeof key === "number" ? decToHex(key) : key
-
+        key = this.getHex(key)
         const { entry, matchingEntry, sidenodes } = this.retrieveEntry(key)
 
         return {
@@ -204,6 +203,10 @@ export default class SMT {
 
             this.nodes.delete(node)
         }
+    }
+
+    private getHex(value: string | number): string {
+        return typeof value === "number" ? decToHex(value) : value
     }
 }
 
