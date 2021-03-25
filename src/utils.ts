@@ -47,21 +47,3 @@ export function hexToDec(n: string): number {
 export function decToHex(n: number): string {
     return n.toString(16)
 }
-
-export function bigIntToHex(n: BigInt): string {
-    return n.toString(16)
-}
-
-export function hexToBigInt(n: string): BigInt {
-    return BigInt(`0x${n}`)
-}
-
-export function hexToUint8Array(n: string): Uint8Array | null {
-    const bytes = n.match(/.{1,2}/g)
-
-    if (bytes) {
-        return new Uint8Array(bytes.map((byte) => parseInt(byte, 16)))
-    }
-
-    return null
-}
