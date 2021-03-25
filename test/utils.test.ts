@@ -1,4 +1,5 @@
-import { getFirstMatchingElements, getIndexOfLastNonZeroElement, keyToPath } from "../src/utils"
+import { checkHex, decToHex, hexToDec } from "../src"
+import { getFirstMatchingElements, getIndexOfLastNonZeroElement, hexToBin, keyToPath } from "../src/utils"
 
 describe("Utility functions", () => {
     describe("Convert SMT keys in 256-bit paths", () => {
@@ -47,6 +48,46 @@ describe("Utility functions", () => {
             const matchingArray = getFirstMatchingElements(array1, array2)
 
             expect(matchingArray).toEqual(array1)
+        })
+    })
+
+    describe("Check hexadecimal", () => {
+        it("Should return true if the number is a hexadecimal", () => {
+            expect(checkHex("be12")).toBeTruthy()
+        })
+
+        it("Should return false if the number is not a hexadecimal", () => {
+            expect(checkHex("gbe12")).toBeFalsy()
+        })
+    })
+
+    describe("Convert hexadecimal to binary", () => {
+        it("Should convert a hexadecimal number to a binary number", () => {
+            expect(hexToBin("12")).toEqual("10010")
+        })
+
+        it("Should not convert a non-hexadecimal number", () => {
+            const fun = () => hexToBin("g12")
+
+            expect(fun).toThrow()
+        })
+    })
+
+    describe("Convert hexadecimal to decimal", () => {
+        it("Should convert a hexadecimal number to a decimal number", () => {
+            expect(hexToDec("12")).toEqual(18)
+        })
+
+        it("Should not convert a non-hexadecimal number", () => {
+            const fun = () => hexToDec("g12")
+
+            expect(fun).toThrow()
+        })
+    })
+
+    describe("Convert decimal to hexadecimal", () => {
+        it("Should convert a decimal number to a hexadecimal number", () => {
+            expect(decToHex(18)).toEqual("12")
         })
     })
 })
