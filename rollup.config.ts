@@ -1,5 +1,5 @@
 import { terser } from "rollup-plugin-terser"
-import typescript from "@rollup/plugin-typescript"
+import typescript from "rollup-plugin-typescript2"
 
 const pkg = require("./package.json")
 
@@ -12,7 +12,7 @@ const banner = `/**
  * @see [Github]{@link ${pkg.homepage}}
 */`
 
-const name = pkg.name.split("/")[0].substring(1)
+const [, name] = pkg.name.split("/")
 
 export default {
     input: "src/index.ts",
@@ -34,5 +34,5 @@ export default {
     watch: {
         include: "src/**"
     },
-    plugins: [typescript()]
+    plugins: [typescript({ useTsconfigDeclarationDir: true })]
 }
