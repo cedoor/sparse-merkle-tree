@@ -1,35 +1,34 @@
-import { SMT } from "../src"
+import { SMT, decToHex } from "../src"
 import { ChildNodes } from "../src/smt"
-import { hexToDec, decToHex } from "../src/utils"
-import { poseidon } from "circomlib"
 import { sha256 } from "js-sha256"
 
 describe("Sparse Merkle tree", () => {
-    const hash = function (childNodes: ChildNodes) {
-        const values = [BigInt(`0x${childNodes[0]}`), BigInt(`0x${childNodes[1]}`)]
-
-        if (childNodes[2]) {
-            values.push(BigInt(1))
-        }
-
-        return poseidon(values).toString(16)
-    }
-    const keys = [10, 3, 43, 32, 9, 23]
+    const hash = (childNodes: ChildNodes) => sha256.hex(childNodes[0] + childNodes[1])
+    const testKeys = [10, 3, 43, 32, 9, 23]
 
     describe("Create new trees", () => {
         it("Should create an empty sparse Merkle tree", () => {
             const tree = new SMT(hash)
 
-            expect(hexToDec(tree.root)).toEqual(0)
+            expect(tree.root).toEqual("0")
         })
     })
 
     describe("Add new entries (key/value) in the tree", () => {
-        it("Should add a new entry", () => {
+        it("Should add a new entry as decimal", () => {
             const tree = new SMT(hash)
             const oldRoot = tree.root
 
             tree.add(2, 10)
+
+            expect(tree.root).not.toEqual(oldRoot)
+        })
+
+        it("Should add a new entry as hexadecimal", () => {
+            const tree = new SMT(hash)
+            const oldRoot = tree.root
+
+            tree.add("c", "e0")
 
             expect(tree.root).not.toEqual(oldRoot)
         })
@@ -46,11 +45,11 @@ describe("Sparse Merkle tree", () => {
         it("Should add 6 new entries and create the correct root hash", () => {
             const tree = new SMT(hash)
 
-            for (const key of keys) {
+            for (const key of testKeys) {
                 tree.add(key, key * 10)
             }
 
-            expect(tree.root.slice(0, 5)).toEqual("114ab")
+            expect(tree.root.slice(0, 5)).toEqual("a08c2")
         })
     })
 
@@ -59,9 +58,18 @@ describe("Sparse Merkle tree", () => {
             const tree = new SMT(hash)
 
             tree.add(2, 10)
-            const value = tree.get(2) as string
+            const value = tree.get(2)
 
-            expect(hexToDec(value)).toEqual(10)
+            expect(value).toEqual("a")
+        })
+
+        it("Should not get a value from the tree using a non-existing key", () => {
+            const tree = new SMT(hash)
+
+            tree.add(2, 10)
+            const value = tree.get(1)
+
+            expect(value).toEqual(null)
         })
     })
 
@@ -72,7 +80,7 @@ describe("Sparse Merkle tree", () => {
             tree.add(2, 10)
             tree.update(2, 5)
 
-            expect(tree.root.slice(0, 5)).toEqual("133cf")
+            expect(tree.root.slice(0, 5)).toEqual("b7a56")
         })
 
         it("Should not update a value with a non-existing key", () => {
@@ -91,21 +99,21 @@ describe("Sparse Merkle tree", () => {
             tree.add(2, 10)
             tree.delete(2)
 
-            expect(hexToDec(tree.root)).toEqual(0)
+            expect(tree.root).toEqual("0")
         })
 
         it("Should delete 3 entries and create the correct root hash", () => {
             const tree = new SMT(hash)
 
-            for (const key of keys) {
+            for (const key of testKeys) {
                 tree.add(key, key * 10)
             }
 
-            tree.delete(keys[1])
-            tree.delete(keys[3])
-            tree.delete(keys[4])
+            tree.delete(testKeys[1])
+            tree.delete(testKeys[3])
+            tree.delete(testKeys[4])
 
-            expect(tree.root.slice(0, 5)).toEqual("27ac0")
+            expect(tree.root.slice(0, 5)).toEqual("c1b68")
         })
 
         it("Should not delete an entry with a non-existing key", () => {
@@ -121,7 +129,7 @@ describe("Sparse Merkle tree", () => {
         it("Should create some Merkle proofs and verify them", () => {
             const tree = new SMT(hash)
 
-            for (const key of keys) {
+            for (const key of testKeys) {
                 tree.add(key, key * 10)
             }
 
@@ -131,12 +139,17 @@ describe("Sparse Merkle tree", () => {
 
                 expect(tree.verifyProof(proof)).toBeTruthy()
             }
+
+            tree.add(18, 1)
+
+            const proof = tree.createProof(6)
+            expect(tree.verifyProof(proof)).toBeTruthy()
         })
 
         it("Should not verify a wrong Merkle proof", () => {
             const tree = new SMT(hash)
 
-            for (const key of keys) {
+            for (const key of testKeys) {
                 tree.add(key, key * 10)
             }
 
@@ -144,21 +157,6 @@ describe("Sparse Merkle tree", () => {
             proof.matchingEntry = [decToHex(32), decToHex(10)]
 
             expect(tree.verifyProof(proof)).toBeFalsy()
-        })
-    })
-
-    describe("...", () => {
-        it("Should ...", () => {
-            const hash = function (childNodes: ChildNodes) {
-                return sha256.hex(childNodes[0] + childNodes[1])
-            }
-
-            const tree = new SMT(hash)
-
-            tree.add(2, 10)
-            const value = tree.get(2) as string
-
-            expect(hexToDec(value)).toEqual(10)
         })
     })
 })
