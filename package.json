@@ -41,7 +41,7 @@
         "test": "jest --coverage",
         "test:watch": "jest --coverage --watch",
         "test:prod": "yarn lint && yarn test --no-cache",
-        "docs": "rimraf docs && typedoc --out docs --theme minimal src",
+        "docs": "rimraf docs && typedoc --options typedoc.json",
         "commit": "cz",
         "precommit": "lint-staged"
     },

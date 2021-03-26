@@ -1,0 +1,10 @@
+{
+    "name": "Sparse Merkle tree",
+    "entryPoints": ["./src/index.ts"],
+    "links": [
+        {
+            "label": "Github",
+            "url": "https://github.com/cedoor/sparse-merkle-tree"
+        }
+    ]
+}
