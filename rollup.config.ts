@@ -18,18 +18,18 @@ export default {
     input: "src/index.ts",
     output: [
         {
-            file: pkg.main,
+            file: pkg.browser,
             name,
-            format: "umd",
+            format: "iife",
             banner
         },
         {
             file: pkg.unpkg,
             name,
-            format: "umd",
+            format: "iife",
             plugins: [terser({ output: { preamble: banner } })]
         },
-        { file: pkg.module, format: "es", banner }
+        { file: pkg.main, format: "es", banner }
     ],
     watch: {
         include: "src/**"
