@@ -18,13 +18,13 @@ export default {
     input: "src/index.ts",
     output: [
         {
-            file: pkg.browser,
+            file: `dist/${name}.js`,
             name,
             format: "iife",
             banner
         },
         {
-            file: pkg.unpkg,
+            file: `dist/${name}.min.js`,
             name,
             format: "iife",
             plugins: [terser({ output: { preamble: banner } })]
