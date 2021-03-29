@@ -18,6 +18,9 @@
     <a href='https://coveralls.io/github/cedoor/sparse-merkle-tree?branch=main' target="_blank">
         <img alt="Coveralls" src="https://img.shields.io/coveralls/github/cedoor/sparse-merkle-tree/main?style=flat-square&logo=coveralls">
     </a>
+    <a href="https://eslint.org/" target="_blank">
+        <img alt="Linter eslint" src="https://img.shields.io/badge/linter-eslint-8080f2?style=flat-square&logo=eslint">
+    </a>
     <a href="https://prettier.io/" target="_blank">
         <img alt="Code style prettier" src="https://img.shields.io/badge/code%20style-prettier-f8bc45?style=flat-square&logo=prettier">
     </a>
