@@ -18,21 +18,19 @@ export default {
     input: "src/index.ts",
     output: [
         {
-            file: pkg.main,
+            file: pkg.browser,
             name,
-            format: "umd",
+            format: "iife",
             banner
         },
         {
             file: pkg.unpkg,
             name,
-            format: "umd",
+            format: "iife",
             plugins: [terser({ output: { preamble: banner } })]
         },
-        { file: pkg.module, format: "es", banner }
+        { file: pkg.exports.require, format: "cjs", banner },
+        { file: pkg.exports.import, format: "es", banner }
     ],
-    watch: {
-        include: "src/**"
-    },
     plugins: [typescript({ useTsconfigDeclarationDir: true })]
 }
