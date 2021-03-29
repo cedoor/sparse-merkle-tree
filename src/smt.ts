@@ -1,30 +1,73 @@
-import { decToHex, getFirstMatchingElements, getIndexOfLastNonZeroElement, keyToPath } from "../src/utils"
+import { decToHex, getFirstCommonElements, getIndexOfLastNonZeroElement, keyToPath } from "../src/utils"
 
-export default class SMT {
+/**
+ * SMT class provides all the functions to create a sparse Merkle tree
+ * and to take advantage of its features: {@linkcode SMT.add}, {@linkcode SMT.get},
+ * {@linkcode SMT.update}, {@linkcode SMT.delete}, {@linkcode SMT.createProof},
+ * {@linkcode SMT.verifyProof}.
+ * To better understand the code below it may be useful to describe the terminology used:
+ * * **nodes**: every node in the tree is the hash of the two child nodes (`H(x, y)`);
+ * * **root node**: the root node is the top hash and since it represents the whole data
+ * structure it can be used to certify its integrity;
+ * * **leaf nodes**: every leaf node is the hash of a key/value pair and an additional
+ * value to mark the node as leaf node (`H(x, y, 1)`);
+ * * **entry**: a tree entry is a key/value pair used to create the leaf nodes;
+ * * **zero nodes**: a zero node is an hash of zeros and in this implementation `H(0,0) = 0`;
+ * * **side node**: if you take one of the two child nodes, the other node is its side node;
+ * * **path**: every entry key is a number < 2^256 that can be converted in a binary number,
+ * and this binary number is the path used to place the entry in the tree (1 or 0 define the
+ * child node to choose);
+ * * **matching node**: when an entry is not found and the path leads to another existing entry,
+ * this entry is a matching entry and it has some of the first bits in common with the entry not found;
+ * * **depth**: the depth of a node is the length of the path to its root.
+ */
+export class SMT {
+    // Hash function used to hash the child nodes.
+    // The child nodes are hexadecimals and the hash function
+    // must return the hash of the child nodes as hexadecimal.
+    private hash: HashFunction
+    // Hexadecimal value for zero nodes.
     private zeroValue: string
-    private hash: (childNodes: ChildNodes) => string
+    // Key/value map in which the key is a node of the tree and
+    // the value is an array of the child nodes. When the node is
+    // a leaf node the child nodes are an entry of the tree.
     private nodes: Map<string, ChildNodes>
 
+    // The root node of the tree.
     root: string
 
-    constructor(hash: (childNodes: ChildNodes) => string) {
-        this.zeroValue = "0"
+    /**
+     * Initializes the SMT attributes.
+     * @param hash Hash function used to hash the child nodes.
+     */
+    constructor(hash: HashFunction) {
         this.hash = hash
+        this.zeroValue = "0"
         this.nodes = new Map()
-        this.root = this.zeroValue
+        this.root = this.zeroValue // The root node is initially a zero node.
     }
 
-    get(key: string | number): string | null {
+    /**
+     * Gets a key as decimal or hexadecimal and if the key exists in
+     * the tree the function returns the value as hexadecimal,
+     * otherwise it returns 'undefined'.
+     * @param key A key of a tree entry.
+     * @returns A value of a tree entry or 'undefined'.
+     */
+    get(key: string | number): string | undefined {
         key = this.getHex(key)
         const { entry } = this.retrieveEntry(key)
-
-        if (entry[1] === undefined) {
-            return null
-        }
 
         return entry[1]
     }
 
+    /**
+     * Adds a new entry in the tree. It retrieves a matching entry
+     * or a zero node with a top-down approach and then it updates all the
+     * hashes of the nodes in the path of the new entry with a bottom-up approach.
+     * @param key The key of the new entry.
+     * @param value The value of the new entry.
+     */
     add(key: string | number, value: string | number) {
         key = this.getHex(key)
         value = this.getHex(value)
@@ -35,35 +78,48 @@ export default class SMT {
         }
 
         const path = keyToPath(key)
+        // If there is a matching entry its node is saved, otherwise
+        // the node is a zero node. This node is used below as the first node
+        // (starting from the bottom of the tree) to obtain the new nodes
+        // up to the root.
         const node = matchingEntry ? this.hash(matchingEntry) : this.zeroValue
 
+        // If there are side nodes it deletes all the nodes of the path.
+        // These nodes will be re-created below with the new hashes.
         if (sidenodes.length > 0) {
-            if (node === this.zeroValue) {
-                this.deleteOldNodes(node, path, sidenodes)
-            } else {
-                const i = getIndexOfLastNonZeroElement(sidenodes)
-
-                this.deleteOldNodes(node, path, sidenodes, i)
-            }
+            this.deleteOldNodes(node, path, sidenodes)
         }
 
-        if (node !== this.zeroValue) {
-            const childNodes = this.nodes.get(node) as string[]
-            const oldPath = keyToPath(childNodes[0])
+        // If there is a matching entry, further N zero side nodes are added
+        // in the `sidenodes` array, followed by the matching node itself.
+        // N is the number of the first matching bits of the paths.
+        // This is helpful in the non-membership proof verification
+        // as explained in the function below.
+        if (matchingEntry) {
+            const matchingPath = keyToPath(matchingEntry[0])
 
-            for (let i = sidenodes.length; oldPath[i] === path[i]; i++) {
+            for (let i = sidenodes.length; matchingPath[i] === path[i]; i++) {
                 sidenodes.push(this.zeroValue)
             }
 
             sidenodes.push(node)
         }
 
-        const newNode = this.hash([key, value, true])
-        this.nodes.set(newNode, [key, value, true])
-
-        this.root = this.insertNewNodes(newNode, path, sidenodes)
+        // Adds the new entry and re-creates the nodes of the path with the new hashes
+        // with a bottom-up approach. The `addNewNodes` function returns the last node
+        // added, which is the root node.
+        const newNode = this.hash([key, value, "1"])
+        this.nodes.set(newNode, [key, value, "1"])
+        this.root = this.addNewNodes(newNode, path, sidenodes)
     }
 
+    /**
+     * Updates a value of an entry in the tree. Also in this case
+     * all the hashes of the nodes in the path of the entry are updated
+     * with a bottom-up approach.
+     * @param key The key of the entry.
+     * @param value The value of the entry.
+     */
     update(key: string | number, value: string | number) {
         key = this.getHex(key)
         value = this.getHex(value)
@@ -75,17 +131,23 @@ export default class SMT {
 
         const path = keyToPath(key)
 
-        const node = this.hash(entry)
-        this.nodes.delete(node)
+        // Deletes the old entry and all the nodes in its path.
+        const oldNode = this.hash(entry)
+        this.nodes.delete(oldNode)
+        this.deleteOldNodes(oldNode, path, sidenodes)
 
-        this.deleteOldNodes(node, path, sidenodes)
-
-        const newNode = this.hash([key, value, true])
-        this.nodes.set(newNode, [key, value, true])
-
-        this.root = this.insertNewNodes(newNode, path, sidenodes)
+        // Adds the new entry and re-creates the nodes of the path
+        // with the new hashes.
+        const newNode = this.hash([key, value, "1"])
+        this.nodes.set(newNode, [key, value, "1"])
+        this.root = this.addNewNodes(newNode, path, sidenodes)
     }
 
+    /**
+     * Deletes an entry in the tree. Also in this case all the hashes of
+     * the nodes in the path of the entry are updated with a bottom-up approach.
+     * @param key The key of the entry.
+     */
     delete(key: string | number) {
         key = this.getHex(key)
         const { entry, sidenodes } = this.retrieveEntry(key)
@@ -96,31 +158,44 @@ export default class SMT {
 
         const path = keyToPath(key)
 
+        // Deletes the entry.
         const node = this.hash(entry)
         this.nodes.delete(node)
 
         this.root = this.zeroValue
 
+        // If there are side nodes it deletes the nodes of the path and
+        // re-creates them with the new hashes.
         if (sidenodes.length > 0) {
             this.deleteOldNodes(node, path, sidenodes)
 
-            const childNodes = this.nodes.get(sidenodes[sidenodes.length - 1]) as string[]
-
-            if (!childNodes[2]) {
-                this.root = this.insertNewNodes(this.zeroValue, path, sidenodes)
+            // If the last side node is not a leaf node, it adds all the
+            // nodes of the path starting from a zero node, otherwise
+            // it removes the last non-zero side node from the `sidenodes`
+            // array and it starts from it by skipping the last zero nodes.
+            if (!this.isLeaf(sidenodes[sidenodes.length - 1])) {
+                this.root = this.addNewNodes(this.zeroValue, path, sidenodes)
             } else {
                 const firstSidenode = sidenodes.pop() as string
                 const i = getIndexOfLastNonZeroElement(sidenodes)
 
-                this.root = this.insertNewNodes(firstSidenode, path, sidenodes, i)
+                this.root = this.addNewNodes(firstSidenode, path, sidenodes, i)
             }
         }
     }
 
+    /**
+     * Creates a proof to prove the membership or the non-membership
+     * of a tree entry.
+     * @param key A key of an existing or a non-existing entry.
+     * @returns The membership or the non-membership proof.
+     */
     createProof(key: string | number): Proof {
         key = this.getHex(key)
         const { entry, matchingEntry, sidenodes } = this.retrieveEntry(key)
 
+        // If the key exists the function returns a membership proof, otherwise it
+        // returns a non-membership proof with the matching entry.
         return {
             entry,
             matchingEntry,
@@ -130,22 +205,43 @@ export default class SMT {
         }
     }
 
+    /**
+     * Verifies a membership or a non-membership proof.
+     * @param proof The proof to verify.
+     * @returns True if the proof is valid, false otherwise.
+     */
     verifyProof(proof: Proof): boolean {
+        // If there is not a matching entry it simply obtains the root
+        // hash by using the side nodes and the path of the key.
         if (!proof.matchingEntry) {
             const path = keyToPath(proof.entry[0])
+            // If there is not an entry value the proof is a non-membership proof,
+            // and in this case, since there is not a matching entry, the node
+            // is a zero node. If there is an entry value the proof is a
+            // membership proof and the node is the hash of the entry.
             const node = proof.entry[1] !== undefined ? this.hash(proof.entry) : this.zeroValue
             const root = this.calculateRoot(node, path, proof.sidenodes)
 
+            // If the obtained root is equal to the proof root, then the proof is valid.
             return root === proof.root
         } else {
+            // If there is a matching entry the proof is definitely a non-membership
+            // proof. In this case it checks if the matching node belongs to the tree
+            // and then it checks if the number of the first matching bits of the keys
+            // is greater than or equal to the number of the side nodes.
             const matchingPath = keyToPath(proof.matchingEntry[0])
             const node = this.hash(proof.matchingEntry)
             const root = this.calculateRoot(node, matchingPath, proof.sidenodes)
 
             if (root === proof.root) {
                 const path = keyToPath(proof.entry[0])
-                const firstMatchingBits = getFirstMatchingElements(path, matchingPath)
-
+                // Returns the first common bits of the two keys: the
+                // non-member key and the matching key.
+                const firstMatchingBits = getFirstCommonElements(path, matchingPath)
+                // If the non-member key was a key of a tree entry, the depth of the
+                // matching node should be greater than the number of the first common
+                // bits of the keys. The depth of a node can be defined by the number
+                // of its side nodes.
                 return proof.sidenodes.length <= firstMatchingBits.length
             }
 
@@ -153,29 +249,57 @@ export default class SMT {
         }
     }
 
+    /**
+     * Searches for an entry in the tree. If the key passed as parameter exists in
+     * the tree, the function returns the entry, otherwise it returns the entry
+     * with only the key, and when there is another existing entry
+     * in the same path it returns also this entry as 'matching entry'.
+     * In any case the function returns the side nodes of the path.
+     * @param key The key of the entry to search for.
+     * @returns The entry response.
+     */
     private retrieveEntry(key: string): EntryResponse {
         const path = keyToPath(key)
         const sidenodes: string[] = []
 
+        // Starts from the root and goes down into the tree until it finds
+        // the entry, a zero node or a matching entry.
         for (let i = 0, node = this.root; node !== this.zeroValue; i++) {
             const childNodes = this.nodes.get(node) as ChildNodes
             const direction = path[i]
 
+            // If the third position of the array is not empty the child nodes
+            // are an entry of the tree.
             if (childNodes[2]) {
                 if (childNodes[0] === key) {
+                    // An entry with the same key was found and
+                    // it returns it with the side nodes.
                     return { entry: childNodes, sidenodes }
                 }
-
+                // The entry found does not have the same key. But the key of this
+                // particular entry matches the first 'i' bits of the key passed
+                // as parameter and it can be useful in several functions.
                 return { entry: [key], matchingEntry: childNodes, sidenodes }
             }
 
-            sidenodes.push(childNodes[Number(!direction)] as string)
+            // When it goes down into the tree and follows the path, in every step
+            // a node is chosen between the left and the right child nodes, and the
+            // opposite node is saved as side node.
             node = childNodes[direction] as string
+            sidenodes.push(childNodes[Number(!direction)] as string)
         }
 
+        // The path led to a zero node.
         return { entry: [key], sidenodes }
     }
 
+    /**
+     * Calculates nodes with a bottom-up approach until it reaches the root node.
+     * @param node The node to start from.
+     * @param path The path of the key.
+     * @param sidenodes The side nodes of the path.
+     * @returns The root node.
+     */
     private calculateRoot(node: string, path: number[], sidenodes: string[]): string {
         for (let i = sidenodes.length - 1; i >= 0; i--) {
             const childNodes: ChildNodes = path[i] ? [sidenodes[i], node] : [node, sidenodes[i]]
@@ -185,7 +309,15 @@ export default class SMT {
         return node
     }
 
-    private insertNewNodes(node: string, path: number[], sidenodes: string[], i = sidenodes.length - 1): string {
+    /**
+     * Adds new nodes in the tree with a bottom-up approach until it reaches the root node.
+     * @param node The node to start from.
+     * @param path The path of the key.
+     * @param sidenodes The side nodes of the path.
+     * @param i The index to start from.
+     * @returns The root node.
+     */
+    private addNewNodes(node: string, path: number[], sidenodes: string[], i = sidenodes.length - 1): string {
         for (; i >= 0; i--) {
             const childNodes: ChildNodes = path[i] ? [sidenodes[i], node] : [node, sidenodes[i]]
             node = this.hash(childNodes)
@@ -196,6 +328,13 @@ export default class SMT {
         return node
     }
 
+    /**
+     * Deletes nodes in the tree with a bottom-up approach until it reaches the root node.
+     * @param node The node to start from.
+     * @param path The path of the key.
+     * @param sidenodes The side nodes of the path.
+     * @param i The index to start from.
+     */
     private deleteOldNodes(node: string, path: number[], sidenodes: string[], i = sidenodes.length - 1) {
         for (; i >= 0; i--) {
             const childNodes: ChildNodes = path[i] ? [sidenodes[i], node] : [node, sidenodes[i]]
@@ -205,12 +344,30 @@ export default class SMT {
         }
     }
 
+    /**
+     * Converts any number into a hexadecimal number.
+     * @param value A decimal or hexadecimal number.
+     * @returns The hexadecimal number.
+     */
     private getHex(value: string | number): string {
         return typeof value === "number" ? decToHex(value) : value
     }
+
+    /**
+     * Checks if a node is a leaf node.
+     * @param node A node of the tree.
+     * @returns True if the node is a leaf, false otherwise.
+     */
+    private isLeaf(node: string): boolean {
+        const childNodes = this.nodes.get(node)
+
+        return !!(childNodes && childNodes[2])
+    }
 }
 
-export type ChildNodes = [string, string?, boolean?]
+export type ChildNodes = [string, string?, string?]
+
+export type HashFunction = (childNodes: ChildNodes) => string
 
 export interface EntryResponse {
     entry: ChildNodes

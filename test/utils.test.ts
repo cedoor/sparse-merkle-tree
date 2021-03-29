@@ -1,5 +1,5 @@
 import { checkHex, decToHex, hexToDec } from "../src"
-import { getFirstMatchingElements, getIndexOfLastNonZeroElement, hexToBin, keyToPath } from "../src/utils"
+import { getFirstCommonElements, getIndexOfLastNonZeroElement, hexToBin, keyToPath } from "../src/utils"
 
 describe("Utility functions", () => {
     describe("Convert SMT keys in 256-bit paths", () => {
@@ -36,7 +36,7 @@ describe("Utility functions", () => {
             const array1 = [1, 4, 3, 8, 2, 9]
             const array2 = [1, 4, 2, 7, 2]
 
-            const matchingArray = getFirstMatchingElements(array1, array2)
+            const matchingArray = getFirstCommonElements(array1, array2)
 
             expect(matchingArray).toEqual([1, 4])
         })
@@ -45,7 +45,7 @@ describe("Utility functions", () => {
             const array1 = [1, 4, 3, 8, 2]
             const array2 = [1, 4, 3, 8, 2, 32, 23]
 
-            const matchingArray = getFirstMatchingElements(array1, array2)
+            const matchingArray = getFirstCommonElements(array1, array2)
 
             expect(matchingArray).toEqual(array1)
         })

@@ -3,7 +3,7 @@ import { ChildNodes } from "../src/smt"
 import { sha256 } from "js-sha256"
 
 describe("Sparse Merkle tree", () => {
-    const hash = (childNodes: ChildNodes) => sha256.hex(childNodes[0] + childNodes[1])
+    const hash = (childNodes: ChildNodes) => sha256(childNodes.join(""))
     const testKeys = [10, 3, 43, 32, 9, 23]
 
     describe("Create new trees", () => {
@@ -49,7 +49,7 @@ describe("Sparse Merkle tree", () => {
                 tree.add(key, key * 10)
             }
 
-            expect(tree.root.slice(0, 5)).toEqual("a08c2")
+            expect(tree.root.slice(0, 5)).toEqual("6e4e4")
         })
     })
 
@@ -69,7 +69,7 @@ describe("Sparse Merkle tree", () => {
             tree.add(2, 10)
             const value = tree.get(1)
 
-            expect(value).toEqual(null)
+            expect(value).toBeUndefined()
         })
     })
 
@@ -80,7 +80,7 @@ describe("Sparse Merkle tree", () => {
             tree.add(2, 10)
             tree.update(2, 5)
 
-            expect(tree.root.slice(0, 5)).toEqual("b7a56")
+            expect(tree.root.slice(0, 5)).toEqual("c75d3")
         })
 
         it("Should not update a value with a non-existing key", () => {
@@ -113,7 +113,7 @@ describe("Sparse Merkle tree", () => {
             tree.delete(testKeys[3])
             tree.delete(testKeys[4])
 
-            expect(tree.root.slice(0, 5)).toEqual("c1b68")
+            expect(tree.root.slice(0, 5)).toEqual("237e9")
         })
 
         it("Should not delete an entry with a non-existing key", () => {
