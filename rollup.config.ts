@@ -29,10 +29,8 @@ export default {
             format: "iife",
             plugins: [terser({ output: { preamble: banner } })]
         },
-        { file: pkg.main, format: "es", banner }
+        { file: pkg.exports.require, format: "cjs", banner },
+        { file: pkg.exports.import, format: "es", banner }
     ],
-    watch: {
-        include: "src/**"
-    },
     plugins: [typescript({ useTsconfigDeclarationDir: true })]
 }

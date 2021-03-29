@@ -1,6 +1,6 @@
 {
     "name": "@cedoor/smt",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Sparse Merkle tree implementation in TypeScript.",
     "keywords": [
         "typescript",
@@ -11,7 +11,11 @@
     "unpkg": "dist/smt.min.js",
     "jsdelivr": "dist/smt.min.js",
     "browser": "dist/smt.js",
-    "main": "dist/smt.esm.js",
+    "main": "dist/smt.cjs",
+    "exports": {
+        "import": "./dist/smt.mjs",
+        "require": "./dist/smt.cjs"
+    },
     "types": "dist/types/index.d.ts",
     "files": [
         "dist/",
