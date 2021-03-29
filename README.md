@@ -1,7 +1,6 @@
 <p align="center">
     <h1 align="center">
         Sparse Merkle tree
-        <sub>In progress</sub>
     </h1>
     <p align="center">Sparse Merkle tree implementation in TypeScript.</p>
 </p>
@@ -25,6 +24,11 @@
     <img alt="Repository top language" src="https://img.shields.io/github/languages/top/cedoor/network-flow-algorithms?style=flat-square&logo=typescript">
     <img alt="NPM bundle size" src="https://img.shields.io/bundlephobia/min/@cedoor/smt?style=flat-square">
 </p>
+
+
+A sparse Merkle tree (SMT) is a data structure useful for storing a key/value map where every leaf node of the tree contains the cryptographic hash of a key/value pair and every non leaf node contains the concatenated hashes of its child nodes. SMTs provides a secure and efficient verification of large data sets and they are often used in peer-to-peer technologies. This implementation is an optimized version of the traditional sparse Merkle tree and it is based on the concepts expressed in the papers and resources below.
+
+**Notice**: this library is still not stable and therefore it must be used with care.
 
 ## References
 
