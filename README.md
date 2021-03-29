@@ -42,7 +42,7 @@ A sparse Merkle tree (SMT) is a data structure useful for storing a key/value ma
 ## Table of Contents
 
 -   🛠 [Install](#install)
--   🕹 [Usage](#usage)
+-   📜 [API reference](#api-reference)
 -   🔬 [Development](#development)
     -   [Rules](#scroll-rules)
         -   [Commits](https://github.com/cedoor/cedoor/tree/main/git#commits-rules)
@@ -81,72 +81,109 @@ or [JSDelivr](https://www.jsdelivr.com/):
 <script src="https://cdn.jsdelivr.net/npm/@cedoor/smt/"></script>
 ```
 
-## Usage
+## API reference
+
+* [Creating trees](#smt-new)
+* [Adding entries](#smt-add)
+* [Getting values](#smt-get)
+* [Updating values](#smt-update)
+* [Deleting entries](#smt-delete)
+* [Creating proofs](#smt-create-proof)
+* [Verifying proofs](#smt-verify-proof)
+
+<a name="smt-new" href="#smt-new">#</a> **new SMT**(hash: *HashFunction*): *SMT*
 
 ```typescript
-import { SMT } from "@cedoor/smt"
-import { poseidon } from "circomlib"
+import { SMT, hexToDec } from "@cedoor/smt"
+import { sha256 } from "js-sha256"
 
-function hash(...values: bigint[]) {
-    return poseidon(values)
-}
-
+const hash = (childNodes: ChildNodes) => sha256(childNodes.join(""))
 const tree = new SMT(hash)
 
-console.log(tree.root) // 0n
+console.log(tree.root) // 0
+```
 
-tree.add(2n, 10n)
-tree.add(4n, 3n)
-tree.add(5n, 7n)
+<a name="smt-add" href="#smt-add">#</a> **add**(key: *string* | *number*, value: *string* | *number*): *void*
 
-console.log(tree.root) // 5137374885430375729214487766088114111148149461453301548120767853134034722842n
-{
-        entry: [ 6n, undefined ],
-        matchingEntry: [ 2n, 10n, true ],
-        sidenodes: [
-          8260015537657879578719447560255924901314166820152114369890800384322230220665n,
-          18913408186443965331523640610196519845260984945962861132244194469219759309914n
-        ],
-        root: 5137374885430375729214487766088114111148149461453301548120767853134034722842n,
-        existence: false
-      }
-const { value, sidenodes } = tree.get(4n)
+```typescript
+tree.add(22, 120) // Decimal key/value.
+tree.add("2b", "44") // Hexadecimal key/value.
+tree.add(13, 231)
+tree.add(16, 321)
+tree.add(32, 832)
 
-console.log(value) // 3n
-console.log(sidenodes) 
-/*[
-    8260015537657879578719447560255924901314166820152114369890800384322230220665n,
-    5425677653063334718369405482428677484996329809930801119387142625676133786812n
-]*/
+console.log(tree.root) // 31ee2a59741c9c32a32d8c7fafe461cca1ccaf5986c2d592586e3e6482a48645  
+```
 
-const membershipProof = tree.createProof(5n)
+<a name="smt-get" href="#smt-get">#</a> **get**(key: *string* | *number*): *undefined* | *string*
+
+```typescript
+const value = tree.get(22)
+
+console.log(value) // 78
+console.log(hexToDec(value)) // 120
+```
+
+<a name="smt-update" href="#smt-update">#</a> **update**(key: *string* | *number*, value: *string* | *number*): *void*
+
+```typescript
+tree.update(22, 121)
+
+const value = tree.get(22)
+
+console.log(hexToDec(value)) // 121
+```
+
+<a name="smt-delete" href="#smt-delete">#</a> **delete**(key: *string* | *number*): *void*
+
+```typescript
+tree.delete(22)
+
+const value = tree.get(22)
+
+console.log(value) // undefined
+```
+
+<a name="smt-create-proof" href="#smt-create-proof">#</a> **createProof**(key: *string* | *number*): *Proof*
+
+```typescript
+const membershipProof = tree.createProof("2b")
+const nonMembershipProof = tree.createProof(22) // This key has been deleted.
 
 console.log(membershipProof)
-/*{
-    entry: [5n, 7n],
+/*
+{
+    entry: [ '2b', '44', '1' ],
+    matchingEntry: undefined,
     sidenodes: [
-        15327728699193584933541192058597044258439932792728427746424913008102980962481n
+        '006a0ab15a212e0e0126b81e056b11576628b1ad80792403dbb3a90be2e71d64',
+        'f786ce5a843614d7da216d95c0087c1eb29244927feeeeeb658aa60cf124cd5e'
     ],
-    root: 5137374885430375729214487766088114111148149461453301548120767853134034722842n,
-    existence: true
-}*/
-
-console.log(tree.verifyProof(membershipProof)) // true
-
-const nonMembershipProof = tree.createProof(6n)
+    root: 'c3c023c84afc0a7bab1dbebcef5f7beaf3d6af4af98e8f481620dec052be7d0d',
+    membership: true
+}
+*/
 
 console.log(nonMembershipProof)
-/*{
-    entry: [6n, undefined],
-    matchingEntry: [2n, 10n, true],
+/*
+{
+    entry: [ '16' ],
+    matchingEntry: undefined,
     sidenodes: [
-        8260015537657879578719447560255924901314166820152114369890800384322230220665n,
-        18913408186443965331523640610196519845260984945962861132244194469219759309914n
+        '960f23d9fbb44241be53efb7c4d69ac129bb1cb9482dcb6789d3cc7e6de2de2b',
+        '2a1aef839e68d1bdf43c1b3b1ed9ef16c27162e8a175898c9ac64a679b0fc825'
     ],
-    root: 5137374885430375729214487766088114111148149461453301548120767853134034722842n,
-    existence: false
-}*/
+    root: 'c3c023c84afc0a7bab1dbebcef5f7beaf3d6af4af98e8f481620dec052be7d0d',
+    membership: false
+}
+*/
+```
 
+<a name="smt-verify-proof" href="#smt-verify-proof">#</a> **verifyProof**(proof: *Proof*): *boolean*
+
+
+```typescript
+console.log(tree.verifyProof(membershipProof)) // true
 console.log(tree.verifyProof(nonMembershipProof)) // true
 ```
 
