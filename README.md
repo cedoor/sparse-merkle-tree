@@ -9,7 +9,7 @@
     <a href="https://www.npmjs.com/package/@cedoor/smt" target="_blank">
         <img alt="NPM version" src="https://img.shields.io/npm/v/@cedoor/smt?style=flat-square">
     </a>
-    <a href="https://github.com/cedoor/sparse-merkle-tree/blob/master/LICENSE" target="_blank">
+    <a href="https://github.com/cedoor/sparse-merkle-tree/blob/main/LICENSE" target="_blank">
         <img alt="Github license" src="https://img.shields.io/github/license/cedoor/sparse-merkle-tree.svg?style=flat-square">
     </a>
     <a href="https://github.com/cedoor/sparse-merkle-tree/actions?query=workflow%3Atest" target="_blank">
