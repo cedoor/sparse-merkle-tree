@@ -15,9 +15,6 @@
         "require": "./dist/smt.node.js"
     },
     "types": "dist/types/index.d.ts",
-    "engines": {
-        "node": ">= 14.0.0"
-    },
     "files": [
         "dist/",
         "src/",
