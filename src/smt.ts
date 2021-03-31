@@ -365,7 +365,7 @@ export class SMT {
     }
 }
 
-export type ChildNodes = [string, string?, string?]
+export type ChildNodes = string[]
 
 export type HashFunction = (childNodes: ChildNodes) => string
 
