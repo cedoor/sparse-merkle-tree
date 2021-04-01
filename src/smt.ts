@@ -45,6 +45,7 @@ export class SMT {
      */
     constructor(hash: HashFunction, bigNumbers = false) {
         if (bigNumbers) {
+            /* istanbul ignore next */
             if (typeof BigInt !== "function") {
                 throw new Error("Big numbers are not supported")
             }
