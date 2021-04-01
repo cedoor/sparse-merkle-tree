@@ -5,7 +5,7 @@
  * @returns The relative array of bits.
  */
 export function keyToPath(key: string | bigint): number[] {
-    const bits = typeof key === "bigint" ? key.toString(16) : hexToBin(key as string)
+    const bits = typeof key === "bigint" ? key.toString(2) : hexToBin(key as string)
 
     return bits.padStart(256, "0").split("").reverse().map(Number)
 }
