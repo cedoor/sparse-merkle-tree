@@ -1,21 +1,22 @@
 /**
- * Returns the binary representation of a key. The keys of the tree
- * are hexadecimals, and for everyone it is possibile to obtain
- * an array of 256 padded bits.
- * @param key A key of a tree entry.
+ * Returns the binary representation of a key. For each key it is possibile
+ * to obtain an array of 256 padded bits.
+ * @param key The key of a tree entry.
  * @returns The relative array of bits.
  */
-export function keyToPath(key: string): number[] {
-    return hexToBin(key).padStart(256, "0").split("").reverse().map(Number)
+export function keyToPath(key: string | bigint): number[] {
+    const bits = typeof key === "bigint" ? key.toString(16) : hexToBin(key as string)
+
+    return bits.padStart(256, "0").split("").reverse().map(Number)
 }
 
 /**
  * Returns the index of the last non-zero element of an array.
  * If there are only zero elements the function returns -1.
- * @param array An array of hexadecimal numbers.
+ * @param array An array of hexadecimal or big numbers.
  * @returns The index of the last non-zero element.
  */
-export function getIndexOfLastNonZeroElement(array: string[]): number {
+export function getIndexOfLastNonZeroElement(array: any[]): number {
     for (let i = array.length - 1; i >= 0; i--) {
         if (Number(`0x${array[i]}`) !== 0) {
             return i
@@ -44,24 +45,11 @@ export function getFirstCommonElements(array1: any[], array2: any[]): any[] {
 }
 
 /**
- * Checks if a number is a hexadecimal number.
- * @param n A hexadecimal number.
- * @returns True if the number is a hexadecimal, false otherwise.
- */
-export function checkHex(n: string): boolean {
-    return /^[0-9A-Fa-f]{1,64}$/.test(n)
-}
-
-/**
  * Converts a hexadecimal number to a binary number.
  * @param n A hexadecimal number.
  * @returns The relative binary number.
  */
 export function hexToBin(n: string): string {
-    if (!checkHex(n)) {
-        throw new Error(`Value ${n} is not a hexadecimal number`)
-    }
-
     let bin = Number(`0x${n[0]}`).toString(2)
 
     for (let i = 1; i < n.length; i++) {
@@ -69,4 +57,13 @@ export function hexToBin(n: string): string {
     }
 
     return bin
+}
+
+/**
+ * Checks if a number is a hexadecimal number.
+ * @param n A hexadecimal number.
+ * @returns True if the number is a hexadecimal, false otherwise.
+ */
+export function checkHex(n: string): boolean {
+    return typeof n === "string" && /^[0-9A-Fa-f]{1,64}$/.test(n)
 }

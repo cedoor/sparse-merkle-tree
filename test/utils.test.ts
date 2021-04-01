@@ -64,11 +64,5 @@ describe("Utility functions", () => {
         it("Should convert a hexadecimal number to a binary number", () => {
             expect(hexToBin("12")).toEqual("10010")
         })
-
-        it("Should not convert a non-hexadecimal number", () => {
-            const fun = () => hexToBin("g12")
-
-            expect(fun).toThrow()
-        })
     })
 })

@@ -1,21 +1,30 @@
 import { SMT } from "../src"
 import { ChildNodes } from "../src/smt"
 import { sha256 } from "js-sha256"
+import { poseidon, smt } from "circomlib"
 
 describe("Sparse Merkle tree", () => {
     const hash = (childNodes: ChildNodes) => sha256(childNodes.join(""))
     const testKeys = ["a", "3", "2b", "20", "9", "17"]
 
-    describe("Create new trees", () => {
+    describe("Create hexadecimal trees", () => {
         it("Should create an empty sparse Merkle tree", () => {
             const tree = new SMT(hash)
 
             expect(tree.root).toEqual("0")
         })
+
+        it("Should not create a hexadecimal tree if the hash function does not return a hexadecimal", () => {
+            const hash = (childNodes: ChildNodes) => poseidon(childNodes)
+
+            const fun = () => new SMT(hash)
+
+            expect(fun).toThrow()
+        })
     })
 
     describe("Add new entries (key/value) in the tree", () => {
-        it("Should add a new entry as decimal", () => {
+        it("Should add a new entry", () => {
             const tree = new SMT(hash)
             const oldRoot = tree.root
 
@@ -24,13 +33,12 @@ describe("Sparse Merkle tree", () => {
             expect(tree.root).not.toEqual(oldRoot)
         })
 
-        it("Should add a new entry as hexadecimal", () => {
+        it("Should not add a new non-hexadecimal entry", () => {
             const tree = new SMT(hash)
-            const oldRoot = tree.root
 
-            tree.add("c", "e0")
+            const fun = () => tree.add(BigInt(2), BigInt(4))
 
-            expect(tree.root).not.toEqual(oldRoot)
+            expect(fun).toThrow()
         })
 
         it("Should not add a new entry with an existing key", () => {
@@ -49,7 +57,7 @@ describe("Sparse Merkle tree", () => {
                 tree.add(key, key)
             }
 
-            expect(tree.root.slice(0, 5)).toEqual("40770")
+            expect(tree.root).toEqual("40770450d00520bdab58e115dd4439c20cd39028252f3973e81fb15b02eb28f7")
         })
     })
 
@@ -80,7 +88,7 @@ describe("Sparse Merkle tree", () => {
             tree.add("2", "a")
             tree.update("2", "5")
 
-            expect(tree.root.slice(0, 5)).toEqual("c75d3")
+            expect(tree.root).toEqual("c75d3f1f5bcd6914d0331ce5ec17c0db8f2070a2d4285f8e3ff11c6ca19168ff")
         })
 
         it("Should not update a value with a non-existing key", () => {
@@ -113,7 +121,7 @@ describe("Sparse Merkle tree", () => {
             tree.delete(testKeys[3])
             tree.delete(testKeys[4])
 
-            expect(tree.root.slice(0, 5)).toEqual("5d2bf")
+            expect(tree.root).toEqual("5d2bfda7c24d9e9e59fe89a271f7d0a3435892c98bc1121b9b590d800deeca10")
         })
 
         it("Should not delete an entry with a non-existing key", () => {
@@ -157,6 +165,66 @@ describe("Sparse Merkle tree", () => {
             proof.matchingEntry = ["20", "a"]
 
             expect(tree.verifyProof(proof)).toBeFalsy()
+        })
+    })
+
+    describe("Create big number trees", () => {
+        const hash = (childNodes: ChildNodes) => poseidon(childNodes)
+
+        it("Should create a big number tree", () => {
+            const tree = new SMT(hash, true)
+
+            expect(tree.root).toEqual(BigInt(0))
+        })
+
+        it("Should not create a big number tree if the hash function does not return a big number", () => {
+            const hash = (childNodes: ChildNodes) => sha256(childNodes.join(""))
+
+            const fun = () => new SMT(hash, true)
+
+            expect(fun).toThrow()
+        })
+
+        it("Should add a big number new entry", () => {
+            const tree = new SMT(hash, true)
+            const oldRoot = tree.root
+
+            tree.add(BigInt(2), BigInt(4))
+
+            expect(tree.root).not.toEqual(oldRoot)
+        })
+
+        it("Should not add a new non-big number entry", () => {
+            const tree = new SMT(hash, true)
+
+            const fun = () => tree.add("2", "a")
+
+            expect(fun).toThrow()
+        })
+    })
+
+    describe("Matching with Circomlib smt implementation", () => {
+        it("Should create two trees with different implementations and match their root nodes", async () => {
+            const hash = (childNodes: ChildNodes) => poseidon(childNodes)
+            const tree = new SMT(hash, true)
+            const tree2 = await smt.newMemEmptyTrie()
+            const entries: any = [
+                [
+                    BigInt("21109732704509421332430788199653083726879915217937906224230620716237676751825"),
+                    BigInt("2831490642350834363479855895896472449222271133340542668358367923560293907626")
+                ],
+                [
+                    BigInt("11261494335128908291348759183228049614138863748694001088920573059515194150558"),
+                    BigInt("19888788720420510634339318541055455303900497018439146284554761253419098060032")
+                ]
+            ]
+
+            for (const entry of entries) {
+                tree.add(entry[0], entry[1])
+                await tree2.insert(entry[0], entry[1])
+            }
+
+            expect(tree.root).toEqual(tree2.root)
         })
     })
 })

@@ -1,4 +1,4 @@
-import { getFirstCommonElements, getIndexOfLastNonZeroElement, keyToPath } from "../src/utils"
+import { checkHex, getFirstCommonElements, getIndexOfLastNonZeroElement, keyToPath } from "../src/utils"
 
 /**
  * SMT class provides all the functions to create a sparse Merkle tree
@@ -13,7 +13,7 @@ import { getFirstCommonElements, getIndexOfLastNonZeroElement, keyToPath } from 
  * value to mark the node as leaf node (`H(x, y, 1)`);
  * * **entry**: a tree entry is a key/value pair used to create the leaf nodes;
  * * **zero nodes**: a zero node is an hash of zeros and in this implementation `H(0,0) = 0`;
- * * **side node**: if you take one of the two child nodes, the other node is its side node;
+ * * **side node**: if you take one of the two child nodes, the other one is its side node;
  * * **path**: every entry key is a number < 2^256 that can be converted in a binary number,
  * and this binary number is the path used to place the entry in the tree (1 or 0 define the
  * child node to choose);
@@ -23,28 +23,48 @@ import { getFirstCommonElements, getIndexOfLastNonZeroElement, keyToPath } from 
  */
 export class SMT {
     // Hash function used to hash the child nodes.
-    // The child nodes are hexadecimals and the hash function
-    // must return the hash of the child nodes as hexadecimal.
     private hash: HashFunction
-    // Hexadecimal value for zero nodes.
-    private zeroValue: string
+    // Value for zero nodes.
+    private zeroNode: Node
+    // Additional entry value to mark the leaf nodes.
+    private entryMark: EntryMark
+    // If true it sets `BigInt` type as default type of the tree hashes.
+    private bigNumbers: boolean
     // Key/value map in which the key is a node of the tree and
-    // the value is an array of the child nodes. When the node is
-    // a leaf node the child nodes are an entry of the tree.
-    private nodes: Map<string, ChildNodes>
+    // the value is an array of child nodes. When the node is
+    // a leaf node the child nodes are an entry (key/value) of the tree.
+    private nodes: Map<Node, ChildNodes>
 
     // The root node of the tree.
-    root: string
+    root: Node
 
     /**
      * Initializes the SMT attributes.
      * @param hash Hash function used to hash the child nodes.
+     * @param bigNumbers BigInt type enabling.
      */
-    constructor(hash: HashFunction) {
+    constructor(hash: HashFunction, bigNumbers = false) {
+        if (bigNumbers) {
+            if (typeof BigInt !== "function") {
+                throw new Error("Big numbers are not supported")
+            }
+
+            if (typeof hash([BigInt(1), BigInt(1)]) !== "bigint") {
+                throw new Error("The hash function must return a big number")
+            }
+        } else {
+            if (!checkHex(hash(["1", "1"]) as string)) {
+                throw new Error("The hash function must return a hexadecimal")
+            }
+        }
+
         this.hash = hash
-        this.zeroValue = "0"
+        this.bigNumbers = bigNumbers
+        this.zeroNode = bigNumbers ? BigInt(0) : "0"
+        this.entryMark = bigNumbers ? BigInt(1) : "1"
         this.nodes = new Map()
-        this.root = this.zeroValue // The root node is initially a zero node.
+
+        this.root = this.zeroNode // The root node is initially a zero node.
     }
 
     /**
@@ -53,7 +73,9 @@ export class SMT {
      * @param key A key of a tree entry.
      * @returns A value of a tree entry or 'undefined'.
      */
-    get(key: string): string | undefined {
+    get(key: Key): Value | undefined {
+        this.checkParameterType(key)
+
         const { entry } = this.retrieveEntry(key)
 
         return entry[1]
@@ -66,7 +88,10 @@ export class SMT {
      * @param key The key of the new entry.
      * @param value The value of the new entry.
      */
-    add(key: string, value: string) {
+    add(key: Key, value: Value) {
+        this.checkParameterType(key)
+        this.checkParameterType(value)
+
         const { entry, matchingEntry, sidenodes } = this.retrieveEntry(key)
 
         if (entry[1] !== undefined) {
@@ -78,7 +103,7 @@ export class SMT {
         // the node is a zero node. This node is used below as the first node
         // (starting from the bottom of the tree) to obtain the new nodes
         // up to the root.
-        const node = matchingEntry ? this.hash(matchingEntry) : this.zeroValue
+        const node = matchingEntry ? this.hash(matchingEntry) : this.zeroNode
 
         // If there are side nodes it deletes all the nodes of the path.
         // These nodes will be re-created below with the new hashes.
@@ -95,7 +120,7 @@ export class SMT {
             const matchingPath = keyToPath(matchingEntry[0])
 
             for (let i = sidenodes.length; matchingPath[i] === path[i]; i++) {
-                sidenodes.push(this.zeroValue)
+                sidenodes.push(this.zeroNode)
             }
 
             sidenodes.push(node)
@@ -104,8 +129,8 @@ export class SMT {
         // Adds the new entry and re-creates the nodes of the path with the new hashes
         // with a bottom-up approach. The `addNewNodes` function returns the last node
         // added, which is the root node.
-        const newNode = this.hash([key, value, "1"])
-        this.nodes.set(newNode, [key, value, "1"])
+        const newNode = this.hash([key, value, this.entryMark])
+        this.nodes.set(newNode, [key, value, this.entryMark])
         this.root = this.addNewNodes(newNode, path, sidenodes)
     }
 
@@ -116,7 +141,10 @@ export class SMT {
      * @param key The key of the entry.
      * @param value The value of the entry.
      */
-    update(key: string, value: string) {
+    update(key: Key, value: Value) {
+        this.checkParameterType(key)
+        this.checkParameterType(value)
+
         const { entry, sidenodes } = this.retrieveEntry(key)
 
         if (entry[1] === undefined) {
@@ -132,8 +160,8 @@ export class SMT {
 
         // Adds the new entry and re-creates the nodes of the path
         // with the new hashes.
-        const newNode = this.hash([key, value, "1"])
-        this.nodes.set(newNode, [key, value, "1"])
+        const newNode = this.hash([key, value, this.entryMark])
+        this.nodes.set(newNode, [key, value, this.entryMark])
         this.root = this.addNewNodes(newNode, path, sidenodes)
     }
 
@@ -142,7 +170,9 @@ export class SMT {
      * the nodes in the path of the entry are updated with a bottom-up approach.
      * @param key The key of the entry.
      */
-    delete(key: string) {
+    delete(key: Key) {
+        this.checkParameterType(key)
+
         const { entry, sidenodes } = this.retrieveEntry(key)
 
         if (entry[1] === undefined) {
@@ -155,7 +185,7 @@ export class SMT {
         const node = this.hash(entry)
         this.nodes.delete(node)
 
-        this.root = this.zeroValue
+        this.root = this.zeroNode
 
         // If there are side nodes it deletes the nodes of the path and
         // re-creates them with the new hashes.
@@ -167,9 +197,9 @@ export class SMT {
             // it removes the last non-zero side node from the `sidenodes`
             // array and it starts from it by skipping the last zero nodes.
             if (!this.isLeaf(sidenodes[sidenodes.length - 1])) {
-                this.root = this.addNewNodes(this.zeroValue, path, sidenodes)
+                this.root = this.addNewNodes(this.zeroNode, path, sidenodes)
             } else {
-                const firstSidenode = sidenodes.pop() as string
+                const firstSidenode = sidenodes.pop() as Node
                 const i = getIndexOfLastNonZeroElement(sidenodes)
 
                 this.root = this.addNewNodes(firstSidenode, path, sidenodes, i)
@@ -183,7 +213,9 @@ export class SMT {
      * @param key A key of an existing or a non-existing entry.
      * @returns The membership or the non-membership proof.
      */
-    createProof(key: string): Proof {
+    createProof(key: Key): Proof {
+        this.checkParameterType(key)
+
         const { entry, matchingEntry, sidenodes } = this.retrieveEntry(key)
 
         // If the key exists the function returns a membership proof, otherwise it
@@ -211,7 +243,7 @@ export class SMT {
             // and in this case, since there is not a matching entry, the node
             // is a zero node. If there is an entry value the proof is a
             // membership proof and the node is the hash of the entry.
-            const node = proof.entry[1] !== undefined ? this.hash(proof.entry) : this.zeroValue
+            const node = proof.entry[1] !== undefined ? this.hash(proof.entry) : this.zeroNode
             const root = this.calculateRoot(node, path, proof.sidenodes)
 
             // If the obtained root is equal to the proof root, then the proof is valid.
@@ -250,13 +282,13 @@ export class SMT {
      * @param key The key of the entry to search for.
      * @returns The entry response.
      */
-    private retrieveEntry(key: string): EntryResponse {
+    private retrieveEntry(key: Key): EntryResponse {
         const path = keyToPath(key)
-        const sidenodes: string[] = []
+        const sidenodes: SideNodes = []
 
         // Starts from the root and goes down into the tree until it finds
         // the entry, a zero node or a matching entry.
-        for (let i = 0, node = this.root; node !== this.zeroValue; i++) {
+        for (let i = 0, node = this.root; node !== this.zeroNode; i++) {
             const childNodes = this.nodes.get(node) as ChildNodes
             const direction = path[i]
 
@@ -277,8 +309,8 @@ export class SMT {
             // When it goes down into the tree and follows the path, in every step
             // a node is chosen between the left and the right child nodes, and the
             // opposite node is saved as side node.
-            node = childNodes[direction] as string
-            sidenodes.push(childNodes[Number(!direction)] as string)
+            node = childNodes[direction] as Node
+            sidenodes.push(childNodes[Number(!direction)] as Node)
         }
 
         // The path led to a zero node.
@@ -292,7 +324,7 @@ export class SMT {
      * @param sidenodes The side nodes of the path.
      * @returns The root node.
      */
-    private calculateRoot(node: string, path: number[], sidenodes: string[]): string {
+    private calculateRoot(node: Node, path: number[], sidenodes: SideNodes): Node {
         for (let i = sidenodes.length - 1; i >= 0; i--) {
             const childNodes: ChildNodes = path[i] ? [sidenodes[i], node] : [node, sidenodes[i]]
             node = this.hash(childNodes)
@@ -309,7 +341,7 @@ export class SMT {
      * @param i The index to start from.
      * @returns The root node.
      */
-    private addNewNodes(node: string, path: number[], sidenodes: string[], i = sidenodes.length - 1): string {
+    private addNewNodes(node: Node, path: number[], sidenodes: SideNodes, i = sidenodes.length - 1): Node {
         for (; i >= 0; i--) {
             const childNodes: ChildNodes = path[i] ? [sidenodes[i], node] : [node, sidenodes[i]]
             node = this.hash(childNodes)
@@ -327,7 +359,7 @@ export class SMT {
      * @param sidenodes The side nodes of the path.
      * @param i The index to start from.
      */
-    private deleteOldNodes(node: string, path: number[], sidenodes: string[], i = sidenodes.length - 1) {
+    private deleteOldNodes(node: Node, path: number[], sidenodes: SideNodes, i = sidenodes.length - 1) {
         for (; i >= 0; i--) {
             const childNodes: ChildNodes = path[i] ? [sidenodes[i], node] : [node, sidenodes[i]]
             node = this.hash(childNodes)
@@ -341,24 +373,45 @@ export class SMT {
      * @param node A node of the tree.
      * @returns True if the node is a leaf, false otherwise.
      */
-    private isLeaf(node: string): boolean {
+    private isLeaf(node: Node): boolean {
         const childNodes = this.nodes.get(node)
 
         return !!(childNodes && childNodes[2])
     }
+
+    /**
+     * Checks the parameter type.
+     * @param parameter The parameter to check.
+     */
+    private checkParameterType(parameter: Key | Value) {
+        if (this.bigNumbers && typeof parameter !== "bigint") {
+            throw new Error(`Parameter ${parameter} must be a big number`)
+        }
+
+        if (!this.bigNumbers && !checkHex(parameter as string)) {
+            throw new Error(`Parameter ${parameter} must be a hexadecimal`)
+        }
+    }
 }
 
-export type ChildNodes = string[]
+export type Node = string | bigint
+export type Key = Node
+export type Value = Node
+export type EntryMark = Node
 
-export type HashFunction = (childNodes: ChildNodes) => string
+export type Entry = [Key, Value, EntryMark]
+export type ChildNodes = Node[]
+export type SideNodes = Node[]
+
+export type HashFunction = (childNodes: ChildNodes) => Node
 
 export interface EntryResponse {
-    entry: ChildNodes
-    matchingEntry?: ChildNodes
-    sidenodes: string[]
+    entry: Entry | Node[]
+    matchingEntry?: Entry | Node[]
+    sidenodes: SideNodes
 }
 
 export interface Proof extends EntryResponse {
-    root: string
+    root: Node
     membership: boolean
 }
