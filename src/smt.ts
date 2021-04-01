@@ -1,4 +1,4 @@
-import { decToHex, getFirstCommonElements, getIndexOfLastNonZeroElement, keyToPath } from "../src/utils"
+import { getFirstCommonElements, getIndexOfLastNonZeroElement, keyToPath } from "../src/utils"
 
 /**
  * SMT class provides all the functions to create a sparse Merkle tree
@@ -48,14 +48,12 @@ export class SMT {
     }
 
     /**
-     * Gets a key as decimal or hexadecimal and if the key exists in
-     * the tree the function returns the value as hexadecimal,
-     * otherwise it returns 'undefined'.
+     * Gets a key and if the key exists in the tree the function returns the
+     * value, otherwise it returns 'undefined'.
      * @param key A key of a tree entry.
      * @returns A value of a tree entry or 'undefined'.
      */
-    get(key: string | number): string | undefined {
-        key = this.getHex(key)
+    get(key: string): string | undefined {
         const { entry } = this.retrieveEntry(key)
 
         return entry[1]
@@ -68,9 +66,7 @@ export class SMT {
      * @param key The key of the new entry.
      * @param value The value of the new entry.
      */
-    add(key: string | number, value: string | number) {
-        key = this.getHex(key)
-        value = this.getHex(value)
+    add(key: string, value: string) {
         const { entry, matchingEntry, sidenodes } = this.retrieveEntry(key)
 
         if (entry[1] !== undefined) {
@@ -120,9 +116,7 @@ export class SMT {
      * @param key The key of the entry.
      * @param value The value of the entry.
      */
-    update(key: string | number, value: string | number) {
-        key = this.getHex(key)
-        value = this.getHex(value)
+    update(key: string, value: string) {
         const { entry, sidenodes } = this.retrieveEntry(key)
 
         if (entry[1] === undefined) {
@@ -148,8 +142,7 @@ export class SMT {
      * the nodes in the path of the entry are updated with a bottom-up approach.
      * @param key The key of the entry.
      */
-    delete(key: string | number) {
-        key = this.getHex(key)
+    delete(key: string) {
         const { entry, sidenodes } = this.retrieveEntry(key)
 
         if (entry[1] === undefined) {
@@ -190,8 +183,7 @@ export class SMT {
      * @param key A key of an existing or a non-existing entry.
      * @returns The membership or the non-membership proof.
      */
-    createProof(key: string | number): Proof {
-        key = this.getHex(key)
+    createProof(key: string): Proof {
         const { entry, matchingEntry, sidenodes } = this.retrieveEntry(key)
 
         // If the key exists the function returns a membership proof, otherwise it
@@ -342,15 +334,6 @@ export class SMT {
 
             this.nodes.delete(node)
         }
-    }
-
-    /**
-     * Converts any number into a hexadecimal number.
-     * @param value A decimal or hexadecimal number.
-     * @returns The hexadecimal number.
-     */
-    private getHex(value: string | number): string {
-        return typeof value === "number" ? decToHex(value) : value
     }
 
     /**

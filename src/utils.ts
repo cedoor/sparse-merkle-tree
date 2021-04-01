@@ -17,7 +17,7 @@ export function keyToPath(key: string): number[] {
  */
 export function getIndexOfLastNonZeroElement(array: string[]): number {
     for (let i = array.length - 1; i >= 0; i--) {
-        if (hexToDec(array[i]) !== 0) {
+        if (Number(`0x${array[i]}`) !== 0) {
             return i
         }
     }
@@ -62,27 +62,11 @@ export function hexToBin(n: string): string {
         throw new Error(`Value ${n} is not a hexadecimal number`)
     }
 
-    return Number(`0x${n}`).toString(2)
-}
+    let bin = Number(`0x${n[0]}`).toString(2)
 
-/**
- * Converts a hexadecimal number to a decimal number.
- * @param n A hexadecimal number.
- * @returns The relative decimal number.
- */
-export function hexToDec(n: string): number {
-    if (!checkHex(n)) {
-        throw new Error(`Value ${n} is not a hexadecimal number`)
+    for (let i = 1; i < n.length; i++) {
+        bin += Number(`0x${n[i]}`).toString(2).padStart(4, "0")
     }
 
-    return Number(`0x${n}`)
-}
-
-/**
- * Converts a decimal number to a hexadecimal number.
- * @param n A decimal number.
- * @returns The relative hexadecimal number.
- */
-export function decToHex(n: number): string {
-    return n.toString(16)
+    return bin
 }
