@@ -28,17 +28,16 @@
     <img alt="NPM bundle size" src="https://img.shields.io/bundlephobia/min/@cedoor/smt?style=flat-square">
 </p>
 
-
 A sparse Merkle tree (SMT) is a data structure useful for storing a key/value map where every leaf node of the tree contains the cryptographic hash of a key/value pair and every non leaf node contains the concatenated hashes of its child nodes. SMTs provides a secure and efficient verification of large data sets and they are often used in peer-to-peer technologies. This implementation is an optimized version of the traditional sparse Merkle tree and it is based on the concepts expressed in the papers and resources below.
 
 **Notice**: this library is still not stable and therefore it must be used with care.
 
 ## References
 
-1. Rasmus Dahlberg, Tobias Pulls and Roel Peeters. *Efficient Sparse Merkle Trees: Caching Strategies and Secure (Non-)Membership Proofs*. Cryptology ePrint Archive: Report 2016/683, 2016. https://eprint.iacr.org/2016/683.
-2. Faraz Haider. *Compact sparse merkle trees*. Cryptology ePrint Archive: Report 2018/955, 2018. https://eprint.iacr.org/2018/955.
-3. Jordi Baylina and Marta Bellés. *Sparse Merkle Trees*. https://docs.iden3.io/publications/pdfs/Merkle-Tree.pdf.
-4. Vitalik Buterin Fichter. *Optimizing sparse Merkle trees*. https://ethresear.ch/t/optimizing-sparse-merkle-trees/3751.
+1. Rasmus Dahlberg, Tobias Pulls and Roel Peeters. _Efficient Sparse Merkle Trees: Caching Strategies and Secure (Non-)Membership Proofs_. Cryptology ePrint Archive: Report 2016/683, 2016. https://eprint.iacr.org/2016/683.
+2. Faraz Haider. _Compact sparse merkle trees_. Cryptology ePrint Archive: Report 2018/955, 2018. https://eprint.iacr.org/2018/955.
+3. Jordi Baylina and Marta Bellés. _Sparse Merkle Trees_. https://docs.iden3.io/publications/pdfs/Merkle-Tree.pdf.
+4. Vitalik Buterin Fichter. _Optimizing sparse Merkle trees_. https://ethresear.ch/t/optimizing-sparse-merkle-trees/3751.
 
 ---
 
@@ -86,72 +85,78 @@ or [JSDelivr](https://www.jsdelivr.com/):
 
 ## API reference
 
-* [Creating trees](#smt-new)
-* [Adding entries](#smt-add)
-* [Getting values](#smt-get)
-* [Updating values](#smt-update)
-* [Deleting entries](#smt-delete)
-* [Creating proofs](#smt-create-proof)
-* [Verifying proofs](#smt-verify-proof)
+-   [Creating trees](#smt-new)
+-   [Adding entries](#smt-add)
+-   [Getting values](#smt-get)
+-   [Updating values](#smt-update)
+-   [Deleting entries](#smt-delete)
+-   [Creating proofs](#smt-create-proof)
+-   [Verifying proofs](#smt-verify-proof)
 
-<a name="smt-new" href="#smt-new">#</a> **new SMT**(hash: *HashFunction*): *SMT*
+<a name="smt-new" href="#smt-new">#</a> **new SMT**(hash: _HashFunction_, bigNumbers?: _boolean_): _SMT_
 
 ```typescript
 import { SMT, hexToDec } from "@cedoor/smt"
 import { sha256 } from "js-sha256"
+import { poseidon } from "circomlib"
 
+// Hexadecimal hashes.
 const hash = (childNodes: ChildNodes) => sha256(childNodes.join(""))
 const tree = new SMT(hash)
 
+// Big number hashes.
+const hash2 = (childNodes: ChildNodes) => poseidon(childNodes)
+const tree2 = new SMT(hash, true)
+
 console.log(tree.root) // 0
+console.log(tree2.root) // 0n
 ```
 
-<a name="smt-add" href="#smt-add">#</a> **add**(key: *string* | *number*, value: *string* | *number*): *void*
+<a name="smt-add" href="#smt-add">#</a> **add**(key: _string_ | _number_, value: _string_ | _number_): _void_
 
 ```typescript
-tree.add(22, 120) // Decimal key/value.
 tree.add("2b", "44") // Hexadecimal key/value.
-tree.add(13, 231)
-tree.add(16, 321)
-tree.add(32, 832)
+tree.add("16", "78")
+tree.add("d", "e7")
+tree.add("10", "141")
+tree.add("20", "340")
 
-console.log(tree.root) // 31ee2a59741c9c32a32d8c7fafe461cca1ccaf5986c2d592586e3e6482a48645  
+console.log(tree.root) // 31ee2a59741c9c32a32d8c7fafe461cca1ccaf5986c2d592586e3e6482a48645
 ```
 
-<a name="smt-get" href="#smt-get">#</a> **get**(key: *string* | *number*): *undefined* | *string*
+<a name="smt-get" href="#smt-get">#</a> **get**(key: _string_ | _number_): _undefined_ | _string_
 
 ```typescript
-const value = tree.get(22)
+const value = tree.get("16")
 
 console.log(value) // 78
-console.log(hexToDec(value)) // 120
 ```
 
-<a name="smt-update" href="#smt-update">#</a> **update**(key: *string* | *number*, value: *string* | *number*): *void*
+<a name="smt-update" href="#smt-update">#</a> **update**(key: _string_ | _number_, value: _string_ | _number_): _void_
 
 ```typescript
-tree.update(22, 121)
+tree.update("16", "79")
 
-const value = tree.get(22)
+const value = tree.get("16")
 
-console.log(hexToDec(value)) // 121
+console.log(value) // 79
 ```
 
-<a name="smt-delete" href="#smt-delete">#</a> **delete**(key: *string* | *number*): *void*
+<a name="smt-delete" href="#smt-delete">#</a> **delete**(key: _string_ | _number_): _void_
 
 ```typescript
-tree.delete(22)
+tree.delete("16")
 
-const value = tree.get(22)
+const value = tree.get("16")
 
 console.log(value) // undefined
 ```
 
-<a name="smt-create-proof" href="#smt-create-proof">#</a> **createProof**(key: *string* | *number*): *Proof*
+<a name="smt-create-proof" href="#smt-create-proof">#</a> **createProof**(key: _string_ | _number_): _Proof_
 
 ```typescript
 const membershipProof = tree.createProof("2b")
-const nonMembershipProof = tree.createProof(22) // This key has been deleted.
+const nonMembershipProof = tree.createProof("16") // This key has been deleted.
 
 console.log(membershipProof)
 /*
@@ -182,8 +187,7 @@ console.log(nonMembershipProof)
 */
 ```
 
-<a name="smt-verify-proof" href="#smt-verify-proof">#</a> **verifyProof**(proof: *Proof*): *boolean*
-
+<a name="smt-verify-proof" href="#smt-verify-proof">#</a> **verifyProof**(proof: _Proof_): _boolean_
 
 ```typescript
 console.log(tree.verifyProof(membershipProof)) // true
