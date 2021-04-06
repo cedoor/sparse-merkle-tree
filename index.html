@@ -1,0 +1,287 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>@cedoor/smt</title>
+	<meta name="description" content="Documentation for @cedoor/smt">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="assets/css/main.css">
+	<script async src="assets/js/search.js" id="search-script"></script>
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.json" data-base=".">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="index.html" class="title">@cedoor/smt</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<h1>@cedoor/smt</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<div class="tsd-panel tsd-typography">
+				<p align="center">
+					<h1 align="center">
+						Sparse Merkle tree
+					</h1>
+					<p align="center">Sparse Merkle tree implementation in TypeScript.</p>
+				</p>
+				<p align="center">
+					<a href="https://www.npmjs.com/package/@cedoor/smt" target="_blank">
+						<img alt="NPM version" src="https://img.shields.io/npm/v/@cedoor/smt?style=flat-square">
+					</a>
+					<a href="https://github.com/cedoor/sparse-merkle-tree/blob/main/LICENSE" target="_blank">
+						<img alt="Github license" src="https://img.shields.io/github/license/cedoor/sparse-merkle-tree.svg?style=flat-square">
+					</a>
+					<a href="https://github.com/cedoor/sparse-merkle-tree/actions?query=workflow%3Atest" target="_blank">
+						<img alt="GitHub Workflow test" src="https://img.shields.io/github/workflow/status/cedoor/sparse-merkle-tree/test?label=test&style=flat-square&logo=github">
+					</a>
+					<a href='https://coveralls.io/github/cedoor/sparse-merkle-tree?branch=main' target="_blank">
+						<img alt="Coveralls" src="https://img.shields.io/coveralls/github/cedoor/sparse-merkle-tree/main?style=flat-square&logo=coveralls">
+					</a>
+					<a href="https://eslint.org/" target="_blank">
+						<img alt="Linter eslint" src="https://img.shields.io/badge/linter-eslint-8080f2?style=flat-square&logo=eslint">
+					</a>
+					<a href="https://prettier.io/" target="_blank">
+						<img alt="Code style prettier" src="https://img.shields.io/badge/code%20style-prettier-f8bc45?style=flat-square&logo=prettier">
+					</a>
+					<img alt="Repository top language" src="https://img.shields.io/github/languages/top/cedoor/network-flow-algorithms?style=flat-square&logo=typescript">
+					<img alt="NPM bundle size" src="https://img.shields.io/bundlephobia/min/@cedoor/smt?style=flat-square">
+				</p>
+				<p>A sparse Merkle tree (SMT) is a data structure useful for storing a key/value map where every leaf node of the tree contains the cryptographic hash of a key/value pair and every non leaf node contains the concatenated hashes of its child nodes. SMTs provides a secure and efficient verification of large data sets and they are often used in peer-to-peer technologies. This implementation is an optimized version of the traditional sparse Merkle tree and it is based on the concepts expressed in the papers and resources below.</p>
+				<p><strong>Notice</strong>: this library is still not stable and therefore it must be used with care.</p>
+				<a href="#references" id="references" style="color: inherit; text-decoration: none;">
+					<h2>References</h2>
+				</a>
+				<ol>
+					<li>Rasmus Dahlberg, Tobias Pulls and Roel Peeters. <em>Efficient Sparse Merkle Trees: Caching Strategies and Secure (Non-)Membership Proofs</em>. Cryptology ePrint Archive: Report 2016/683, 2016. <a href="https://eprint.iacr.org/2016/683">https://eprint.iacr.org/2016/683</a>.</li>
+					<li>Faraz Haider. <em>Compact sparse merkle trees</em>. Cryptology ePrint Archive: Report 2018/955, 2018. <a href="https://eprint.iacr.org/2018/955">https://eprint.iacr.org/2018/955</a>.</li>
+					<li>Jordi Baylina and Marta Bellés. <em>Sparse Merkle Trees</em>. <a href="https://docs.iden3.io/publications/pdfs/Merkle-Tree.pdf">https://docs.iden3.io/publications/pdfs/Merkle-Tree.pdf</a>.</li>
+					<li>Vitalik Buterin Fichter. <em>Optimizing sparse Merkle trees</em>. <a href="https://ethresear.ch/t/optimizing-sparse-merkle-trees/3751">https://ethresear.ch/t/optimizing-sparse-merkle-trees/3751</a>.</li>
+				</ol>
+				<hr>
+				<a href="#table-of-contents" id="table-of-contents" style="color: inherit; text-decoration: none;">
+					<h2>Table of Contents</h2>
+				</a>
+				<ul>
+					<li>  🛠 <a href="#install">Install</a></li>
+					<li>  📜 <a href="#api-reference">API reference</a></li>
+					<li>🔬 <a href="#development">Development</a><ul>
+							<li><a href="#scroll-rules">Rules</a><ul>
+									<li>  <a href="https://github.com/cedoor/cedoor/tree/main/git#commits-rules">Commits</a></li>
+									<li>  <a href="https://github.com/cedoor/cedoor/tree/main/git#branch-rules">Branches</a></li>
+								</ul>
+							</li>
+						</ul>
+					</li>
+					<li>  🧾 <a href="https://github.com/cedoor/sparse-merkle-tree/blob/master/LICENSE">MIT License</a></li>
+					<li>☎️ <a href="#contacts">Contacts</a><ul>
+							<li>  <a href="#developers">Developers</a></li>
+						</ul>
+					</li>
+				</ul>
+				<a href="#install" id="install" style="color: inherit; text-decoration: none;">
+					<h2>Install</h2>
+				</a>
+				<a href="#npm-or-yarn" id="npm-or-yarn" style="color: inherit; text-decoration: none;">
+					<h3>npm or yarn</h3>
+				</a>
+				<p>You can install utils package with npm:</p>
+				<pre><code class="language-bash"><span style="color: #000000">npm i @cedoor/smt --save</span>
+</code></pre>
+				<p>or with yarn:</p>
+				<pre><code class="language-bash"><span style="color: #000000">yarn add @cedoor/smt</span>
+</code></pre>
+				<a href="#cdn" id="cdn" style="color: inherit; text-decoration: none;">
+					<h3>CDN</h3>
+				</a>
+				<p>You can also load it using a <code>script</code> tap using <a href="https://unpkg.com/">unpkg</a>:</p>
+				<pre><code class="language-html"><span style="color: #800000">&lt;script</span><span style="color: #000000FF"> </span><span style="color: #FF0000">src</span><span style="color: #000000FF">=</span><span style="color: #0000FF">&quot;https://unpkg.com/@cedoor/smt/&quot;</span><span style="color: #800000">&gt;&lt;/script&gt;</span>
+</code></pre>
+				<p>or <a href="https://www.jsdelivr.com/">JSDelivr</a>:</p>
+				<pre><code class="language-html"><span style="color: #800000">&lt;script</span><span style="color: #000000FF"> </span><span style="color: #FF0000">src</span><span style="color: #000000FF">=</span><span style="color: #0000FF">&quot;https://cdn.jsdelivr.net/npm/@cedoor/smt/&quot;</span><span style="color: #800000">&gt;&lt;/script&gt;</span>
+</code></pre>
+				<a href="#api-reference" id="api-reference" style="color: inherit; text-decoration: none;">
+					<h2>API reference</h2>
+				</a>
+				<ul>
+					<li>  <a href="#smt-new">Creating trees</a></li>
+					<li>  <a href="#smt-add">Adding entries</a></li>
+					<li>  <a href="#smt-get">Getting values</a></li>
+					<li>  <a href="#smt-update">Updating values</a></li>
+					<li>  <a href="#smt-delete">Deleting entries</a></li>
+					<li>  <a href="#smt-create-proof">Creating proofs</a></li>
+					<li>  <a href="#smt-verify-proof">Verifying proofs</a></li>
+				</ul>
+				<p><a name="smt-new" href="#smt-new">#</a> <strong>new SMT</strong>(hash: <em>HashFunction</em>, bigNumbers?: <em>boolean</em>): <em>SMT</em></p>
+				<pre><code class="language-typescript"><span style="color: #AF00DB">import</span><span style="color: #000000"> { </span><span style="color: #001080">SMT</span><span style="color: #000000">, </span><span style="color: #001080">hexToDec</span><span style="color: #000000"> } </span><span style="color: #AF00DB">from</span><span style="color: #000000"> </span><span style="color: #A31515">&quot;@cedoor/smt&quot;</span>
+<span style="color: #AF00DB">import</span><span style="color: #000000"> { </span><span style="color: #001080">sha256</span><span style="color: #000000"> } </span><span style="color: #AF00DB">from</span><span style="color: #000000"> </span><span style="color: #A31515">&quot;js-sha256&quot;</span>
+<span style="color: #AF00DB">import</span><span style="color: #000000"> { </span><span style="color: #001080">poseidon</span><span style="color: #000000"> } </span><span style="color: #AF00DB">from</span><span style="color: #000000"> </span><span style="color: #A31515">&quot;circomlib&quot;</span>
+
+<span style="color: #008000">// Hexadecimal hashes.</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #795E26">hash</span><span style="color: #000000"> = (</span><span style="color: #001080">childNodes</span><span style="color: #000000">: </span><span style="color: #267F99">ChildNodes</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> </span><span style="color: #795E26">sha256</span><span style="color: #000000">(</span><span style="color: #001080">childNodes</span><span style="color: #000000">.</span><span style="color: #795E26">join</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;&quot;</span><span style="color: #000000">))</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">tree</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">SMT</span><span style="color: #000000">(</span><span style="color: #001080">hash</span><span style="color: #000000">)</span>
+
+<span style="color: #008000">// Big number hashes.</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #795E26">hash2</span><span style="color: #000000"> = (</span><span style="color: #001080">childNodes</span><span style="color: #000000">: </span><span style="color: #267F99">ChildNodes</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> </span><span style="color: #795E26">poseidon</span><span style="color: #000000">(</span><span style="color: #001080">childNodes</span><span style="color: #000000">)</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">tree2</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">SMT</span><span style="color: #000000">(</span><span style="color: #001080">hash</span><span style="color: #000000">, </span><span style="color: #0000FF">true</span><span style="color: #000000">)</span>
+
+<span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #001080">tree</span><span style="color: #000000">.</span><span style="color: #001080">root</span><span style="color: #000000">) </span><span style="color: #008000">// 0</span>
+<span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #001080">tree2</span><span style="color: #000000">.</span><span style="color: #001080">root</span><span style="color: #000000">) </span><span style="color: #008000">// 0n</span>
+</code></pre>
+				<p><a name="smt-add" href="#smt-add">#</a> <strong>add</strong>(key: <em>string</em> | <em>number</em>, value: <em>string</em> | <em>number</em>): <em>void</em></p>
+				<pre><code class="language-typescript"><span style="color: #001080">tree</span><span style="color: #000000">.</span><span style="color: #795E26">add</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;2b&quot;</span><span style="color: #000000">, </span><span style="color: #A31515">&quot;44&quot;</span><span style="color: #000000">) </span><span style="color: #008000">// Hexadecimal key/value.</span>
+<span style="color: #001080">tree</span><span style="color: #000000">.</span><span style="color: #795E26">add</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;16&quot;</span><span style="color: #000000">, </span><span style="color: #A31515">&quot;78&quot;</span><span style="color: #000000">)</span>
+<span style="color: #001080">tree</span><span style="color: #000000">.</span><span style="color: #795E26">add</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;d&quot;</span><span style="color: #000000">, </span><span style="color: #A31515">&quot;e7&quot;</span><span style="color: #000000">)</span>
+<span style="color: #001080">tree</span><span style="color: #000000">.</span><span style="color: #795E26">add</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;10&quot;</span><span style="color: #000000">, </span><span style="color: #A31515">&quot;141&quot;</span><span style="color: #000000">)</span>
+<span style="color: #001080">tree</span><span style="color: #000000">.</span><span style="color: #795E26">add</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;20&quot;</span><span style="color: #000000">, </span><span style="color: #A31515">&quot;340&quot;</span><span style="color: #000000">)</span>
+
+<span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #001080">tree</span><span style="color: #000000">.</span><span style="color: #001080">root</span><span style="color: #000000">) </span><span style="color: #008000">// 31ee2a59741c9c32a32d8c7fafe461cca1ccaf5986c2d592586e3e6482a48645</span>
+</code></pre>
+				<p><a name="smt-get" href="#smt-get">#</a> <strong>get</strong>(key: <em>string</em> | <em>number</em>): <em>undefined</em> | <em>string</em></p>
+				<pre><code class="language-typescript"><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">value</span><span style="color: #000000"> = </span><span style="color: #001080">tree</span><span style="color: #000000">.</span><span style="color: #795E26">get</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;16&quot;</span><span style="color: #000000">)</span>
+
+<span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #001080">value</span><span style="color: #000000">) </span><span style="color: #008000">// 78</span>
+</code></pre>
+				<p><a name="smt-update" href="#smt-update">#</a> <strong>update</strong>(key: <em>string</em> | <em>number</em>, value: <em>string</em> | <em>number</em>): <em>void</em></p>
+				<pre><code class="language-typescript"><span style="color: #001080">tree</span><span style="color: #000000">.</span><span style="color: #795E26">update</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;16&quot;</span><span style="color: #000000">, </span><span style="color: #A31515">&quot;79&quot;</span><span style="color: #000000">)</span>
+
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">value</span><span style="color: #000000"> = </span><span style="color: #001080">tree</span><span style="color: #000000">.</span><span style="color: #795E26">get</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;16&quot;</span><span style="color: #000000">)</span>
+
+<span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #001080">value</span><span style="color: #000000">) </span><span style="color: #008000">// 79</span>
+</code></pre>
+				<p><a name="smt-delete" href="#smt-delete">#</a> <strong>delete</strong>(key: <em>string</em> | <em>number</em>): <em>void</em></p>
+				<pre><code class="language-typescript"><span style="color: #001080">tree</span><span style="color: #000000">.</span><span style="color: #795E26">delete</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;16&quot;</span><span style="color: #000000">)</span>
+
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">value</span><span style="color: #000000"> = </span><span style="color: #001080">tree</span><span style="color: #000000">.</span><span style="color: #795E26">get</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;16&quot;</span><span style="color: #000000">)</span>
+
+<span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #001080">value</span><span style="color: #000000">) </span><span style="color: #008000">// undefined</span>
+</code></pre>
+				<p><a name="smt-create-proof" href="#smt-create-proof">#</a> <strong>createProof</strong>(key: <em>string</em> | <em>number</em>): <em>Proof</em></p>
+				<pre><code class="language-typescript"><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">membershipProof</span><span style="color: #000000"> = </span><span style="color: #001080">tree</span><span style="color: #000000">.</span><span style="color: #795E26">createProof</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;2b&quot;</span><span style="color: #000000">)</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">nonMembershipProof</span><span style="color: #000000"> = </span><span style="color: #001080">tree</span><span style="color: #000000">.</span><span style="color: #795E26">createProof</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;16&quot;</span><span style="color: #000000">) </span><span style="color: #008000">// This key has been deleted.</span>
+
+<span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #001080">membershipProof</span><span style="color: #000000">)</span>
+<span style="color: #008000">/*</span>
+<span style="color: #008000">{</span>
+<span style="color: #008000">    entry: [ &#039;2b&#039;, &#039;44&#039;, &#039;1&#039; ],</span>
+<span style="color: #008000">    matchingEntry: undefined,</span>
+<span style="color: #008000">    sidenodes: [</span>
+<span style="color: #008000">        &#039;006a0ab15a212e0e0126b81e056b11576628b1ad80792403dbb3a90be2e71d64&#039;,</span>
+<span style="color: #008000">        &#039;f786ce5a843614d7da216d95c0087c1eb29244927feeeeeb658aa60cf124cd5e&#039;</span>
+<span style="color: #008000">    ],</span>
+<span style="color: #008000">    root: &#039;c3c023c84afc0a7bab1dbebcef5f7beaf3d6af4af98e8f481620dec052be7d0d&#039;,</span>
+<span style="color: #008000">    membership: true</span>
+<span style="color: #008000">}</span>
+<span style="color: #008000">*/</span>
+
+<span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #001080">nonMembershipProof</span><span style="color: #000000">)</span>
+<span style="color: #008000">/*</span>
+<span style="color: #008000">{</span>
+<span style="color: #008000">    entry: [ &#039;16&#039; ],</span>
+<span style="color: #008000">    matchingEntry: undefined,</span>
+<span style="color: #008000">    sidenodes: [</span>
+<span style="color: #008000">        &#039;960f23d9fbb44241be53efb7c4d69ac129bb1cb9482dcb6789d3cc7e6de2de2b&#039;,</span>
+<span style="color: #008000">        &#039;2a1aef839e68d1bdf43c1b3b1ed9ef16c27162e8a175898c9ac64a679b0fc825&#039;</span>
+<span style="color: #008000">    ],</span>
+<span style="color: #008000">    root: &#039;c3c023c84afc0a7bab1dbebcef5f7beaf3d6af4af98e8f481620dec052be7d0d&#039;,</span>
+<span style="color: #008000">    membership: false</span>
+<span style="color: #008000">}</span>
+<span style="color: #008000">*/</span>
+</code></pre>
+				<p><a name="smt-verify-proof" href="#smt-verify-proof">#</a> <strong>verifyProof</strong>(proof: <em>Proof</em>): <em>boolean</em></p>
+				<pre><code class="language-typescript"><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #001080">tree</span><span style="color: #000000">.</span><span style="color: #795E26">verifyProof</span><span style="color: #000000">(</span><span style="color: #001080">membershipProof</span><span style="color: #000000">)) </span><span style="color: #008000">// true</span>
+<span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #001080">tree</span><span style="color: #000000">.</span><span style="color: #795E26">verifyProof</span><span style="color: #000000">(</span><span style="color: #001080">nonMembershipProof</span><span style="color: #000000">)) </span><span style="color: #008000">// true</span>
+</code></pre>
+				<a href="#contacts" id="contacts" style="color: inherit; text-decoration: none;">
+					<h2>Contacts</h2>
+				</a>
+				<a href="#developers" id="developers" style="color: inherit; text-decoration: none;">
+					<h3>Developers</h3>
+				</a>
+				<ul>
+					<li>  e-mail : <a href="mailto:me@cedoor.dev">me@cedoor.dev</a></li>
+					<li>  github : <a href="https://github.com/cedoor">@cedoor</a></li>
+					<li>  website : <a href="https://cedoor.dev">https://cedoor.dev</a></li>
+				</ul>
+			</div>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class=" ">
+						<a href="modules.html">Exports</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+					<li class=" tsd-kind-class">
+						<a href="classes/smt.html" class="tsd-kind-icon">SMT</a>
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="assets/js/main.js"></script>
+</body>
+</html>
