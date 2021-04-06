@@ -1,6 +1,6 @@
 {
     "name": "@cedoor/smt",
-    "version": "0.1.6",
+    "version": "0.1.7",
     "description": "Sparse Merkle tree implementation in TypeScript.",
     "keywords": [
         "typescript",
