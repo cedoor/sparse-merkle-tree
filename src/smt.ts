@@ -360,8 +360,8 @@ export class SMT {
      * @param sidenodes The side nodes of the path.
      * @param i The index to start from.
      */
-    private deleteOldNodes(node: Node, path: number[], sidenodes: SideNodes, i = sidenodes.length - 1) {
-        for (; i >= 0; i--) {
+    private deleteOldNodes(node: Node, path: number[], sidenodes: SideNodes) {
+        for (let i = sidenodes.length - 1; i >= 0; i--) {
             const childNodes: ChildNodes = path[i] ? [sidenodes[i], node] : [node, sidenodes[i]]
             node = this.hash(childNodes)
 
