@@ -106,7 +106,7 @@ const tree = new SMT(hash)
 
 // Big number hashes.
 const hash2 = (childNodes: ChildNodes) => poseidon(childNodes)
-const tree2 = new SMT(hash, true)
+const tree2 = new SMT(hash2, true)
 
 console.log(tree.root) // 0
 console.log(tree2.root) // 0n
